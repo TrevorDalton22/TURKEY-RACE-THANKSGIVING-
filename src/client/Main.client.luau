@@ -1,3 +1,5 @@
-local Players = game:GetService("Players")
+local Controls = require(script.Parent.Controls)
+local Hud = require(script.Parent.Hud)
 
-print(`[TurkeyRace] Client ready for {Players.LocalPlayer.Name}`)
+Controls.start()
+Hud.start(Controls)

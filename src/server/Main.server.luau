@@ -1,5 +1,7 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Stats = require(script.Parent.Stats)
+local TurkeySuit = require(script.Parent.TurkeySuit)
+local RaceManager = require(script.Parent.RaceManager)
 
-local Config = require(ReplicatedStorage.Shared.Config)
-
-print(`[TurkeyRace] Server ready ({Config.MaxPlayers}-player races)`)
+Stats.start()
+TurkeySuit.start()
+RaceManager.start()

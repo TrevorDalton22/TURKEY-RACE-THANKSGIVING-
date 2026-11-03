@@ -5,6 +5,13 @@
     "ReplicatedStorage": {
       "Shared": {
         "$path": "src/shared"
+      },
+      "Remotes": {
+        "$className": "Folder",
+        "Knockback": { "$className": "RemoteEvent" },
+        "Notify": { "$className": "RemoteEvent" },
+        "Results": { "$className": "RemoteEvent" },
+        "UsePowerUp": { "$className": "RemoteEvent" }
       }
     },
     "ServerScriptService": {
@@ -13,6 +20,9 @@
       }
     },
     "StarterPlayer": {
+      "$properties": {
+        "EnableMouseLockOption": false
+      },
       "StarterPlayerScripts": {
         "Client": {
           "$path": "src/client"
