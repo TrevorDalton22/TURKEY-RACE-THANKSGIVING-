@@ -6,6 +6,7 @@ local RunService = game:GetService("RunService")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Track = require(script.Parent.Track)
 local Sfx = require(script.Parent.Sfx)
+local PowerUps = require(script.Parent.PowerUps)
 
 local Remotes = ReplicatedStorage.Remotes
 local settings = Config.Chef
@@ -162,9 +163,9 @@ function Chef.begin(racers)
 					-- Fling sideways and back so a hit costs time instead of helping.
 					local side = dir:Cross(Vector3.yAxis) * (if math.random() < 0.5 then -1 else 1)
 					local velocity = side * 45 - dir * 20 + Vector3.new(0, 60, 0)
-					Remotes.Knockback:FireClient(t.player, velocity, settings.StunSeconds)
-					Remotes.Notify:FireClient(t.player, "🍳 BONK! The chef got you!")
-					Sfx.all("Bonk", t.root.Position)
+					if PowerUps.hit(t.player, velocity, settings.StunSeconds, "🍳 BONK! The chef got you!") then
+						Sfx.all("Bonk", t.root.Position)
+					end
 				end
 			end
 		end

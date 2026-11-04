@@ -75,7 +75,8 @@ local function onJumpRequest()
 	end
 end
 
-local function onKnockback(velocity: Vector3, stun: number)
+-- spin: spin in place around the up axis at this speed instead of tumbling (the Corn Tornado).
+local function onKnockback(velocity: Vector3, stun: number, spin: number?)
 	local humanoid, root = humanoidAndRoot()
 	if not humanoid or not root then
 		return
@@ -85,7 +86,7 @@ local function onKnockback(velocity: Vector3, stun: number)
 	stunnedUntil = os.clock() + stun
 	humanoid.PlatformStand = true
 	root.AssemblyLinearVelocity = velocity
-	root.AssemblyAngularVelocity = Vector3.new(math.random(-8, 8), math.random(-8, 8), math.random(-8, 8))
+	root.AssemblyAngularVelocity = if spin then Vector3.new(0, spin, 0) else Vector3.new(math.random(-8, 8), math.random(-8, 8), math.random(-8, 8))
 	task.delay(stun, function()
 		if token == stunToken and humanoid.Parent then
 			humanoid.PlatformStand = false

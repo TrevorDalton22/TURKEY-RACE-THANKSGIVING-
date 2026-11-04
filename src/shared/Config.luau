@@ -53,6 +53,12 @@ local Config = {
 		DrumstickDash = { Name = "Drumstick Dash", Icon = "🍗", Multiplier = 1.6, Seconds = 3 },
 		PieLauncher = { Name = "Pie Launcher", Icon = "🥧", Speed = 90, Range = 160, SlowMultiplier = 0.5, SlowSeconds = 2.5 },
 		ButterSlide = { Name = "Butter Slide", Icon = "🧈", Lifetime = 12, StunSeconds = 1 },
+		-- Knocks every turkey within Radius away from you.
+		GobbleBomb = { Name = "Gobble Bomb", Icon = "💥", Radius = 22, Push = 60, Lift = 35, StunSeconds = 1.2 },
+		-- Blocks the next hit of any kind (chef included), or runs out after Seconds.
+		MashedPotatoShield = { Name = "Potato Shield", Icon = "🥔", Seconds = 10 },
+		-- Rolls down the track ahead of you, steering toward turkeys and spinning them around.
+		CornTornado = { Name = "Corn Tornado", Icon = "🌪️", Speed = 55, Seconds = 4, HitRadius = 7, SpinSeconds = 1.5, SpinSpeed = 18 },
 	},
 	ItemBoxRespawnSeconds = 4,
 

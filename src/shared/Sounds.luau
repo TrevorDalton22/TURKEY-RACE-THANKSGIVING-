@@ -1,9 +1,9 @@
 -- Every sound in the game, by name. Change an Id here to swap that sound everywhere.
--- Ids are Creator Store audio; the (PSE) ones are Pro Sound Effects and the music is APM,
--- both licensed by Roblox for any experience.
+-- Number ids are Creator Store audio; the (PSE) ones are Pro Sound Effects and the music is APM,
+-- both licensed by Roblox for any experience. Text ids are files that ship with Roblox itself.
 --   Volume: 0..1   Speed: playback speed (also raises pitch)   Range: how far away it can be heard
 
-export type Def = { Id: number, Volume: number?, Speed: number?, Range: number?, Looped: boolean? }
+export type Def = { Id: number | string, Volume: number?, Speed: number?, Range: number?, Looped: boolean? }
 
 local Sounds: { [string]: Def } = {
 	-- Turkeys
@@ -25,6 +25,11 @@ local Sounds: { [string]: Def } = {
 	Throw = { Id = 9114158497, Volume = 0.6 }, -- PSE
 	Splat = { Id = 12222152, Volume = 1 }, -- Roblox
 	Slip = { Id = 136774133309136, Volume = 0.9 },
+	Boom = { Id = "rbxasset://sounds/impact_explosion_03.mp3", Volume = 0.7 }, -- Gobble Bomb
+	ShieldUp = { Id = 12222152, Volume = 0.8, Speed = 0.6 }, -- the splat, slowed into a squish
+	ShieldPop = { Id = 12222152, Volume = 1, Speed = 1.4 },
+	Tornado = { Id = 9114158497, Volume = 0.8, Speed = 0.55, Range = 150 }, -- PSE whoosh, slowed into wind
+	Spin = { Id = 136774133309136, Volume = 0.9, Speed = 0.8 },
 
 	-- Shop
 	Purchase = { Id = 120891770644830, Volume = 0.6 },

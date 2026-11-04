@@ -23,7 +23,7 @@ local function makeTemplates()
 	for name, def in Sounds do
 		local sound = Instance.new("Sound")
 		sound.Name = name
-		sound.SoundId = `rbxassetid://{def.Id}`
+		sound.SoundId = if typeof(def.Id) == "string" then def.Id else `rbxassetid://{def.Id}`
 		sound.Volume = def.Volume or 0.6
 		sound.PlaybackSpeed = def.Speed or 1
 		sound.Looped = def.Looped == true
