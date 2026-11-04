@@ -14,7 +14,27 @@ local HOSTS = {
 	Wing = { "LeftUpperArm", "RightUpperArm", "Left Arm", "Right Arm" },
 }
 
-local function attach(host: BasePart, props, offset: CFrame)
+-- Glitter drifting off the surface of a part (the Golden Turkey).
+local function sparkle(part: BasePart, color: Color3)
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	emitter.Color = ColorSequence.new(color)
+	emitter.LightEmission = 1
+	emitter.Rate = 10
+	emitter.Lifetime = NumberRange.new(0.5, 1)
+	emitter.Speed = NumberRange.new(0.5, 1.5)
+	emitter.SpreadAngle = Vector2.new(180, 180)
+	emitter.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0),
+		NumberSequenceKeypoint.new(0.3, 0.45),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	emitter.Shape = Enum.ParticleEmitterShape.Sphere
+	emitter.ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface
+	emitter.Parent = part
+end
+
+local function attach(host: BasePart, props, offset: CFrame): BasePart
 	local p = Instance.new("Part")
 	p.Name = "TurkeySuit"
 	p.Massless = true
@@ -32,6 +52,7 @@ local function attach(host: BasePart, props, offset: CFrame)
 	weld.Part1 = p
 	weld.Parent = p
 	p.Parent = host.Parent
+	return p
 end
 
 -- Safe to call again on the same character: the old suit is removed first.
@@ -46,6 +67,7 @@ local function dress(character: Model, skinId: string?)
 		if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
 			if part.Name:find("Leg") or part.Name:find("Foot") then
 				part.Color = skin.Legs
+				part.Transparency = skin.Transparency
 			else
 				part.Transparency = 1
 			end
@@ -60,7 +82,10 @@ local function dress(character: Model, skinId: string?)
 		for _, name in HOSTS[piece.Host] do
 			local host = character:FindFirstChild(name)
 			if host and host:IsA("BasePart") then
-				attach(host, piece.Props, piece.Offset)
+				local part = attach(host, piece.Props, piece.Offset)
+				if piece.Sparkle then
+					sparkle(part, piece.Sparkle)
+				end
 			end
 		end
 	end

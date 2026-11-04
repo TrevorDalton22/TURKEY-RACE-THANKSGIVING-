@@ -55,8 +55,8 @@ local function buildPreview(card: Frame, skin): Camera
 	end
 	-- In game the legs are the avatar's own; the preview gets simple ones.
 	for _, x in { -0.5, 0.5 } do
-		previewPart(viewport, { Size = Vector3.new(0.4, 1.8, 0.4), Color = skin.Legs }, CFrame.new(x, -3.2, 0.2))
-		previewPart(viewport, { Size = Vector3.new(0.9, 0.3, 1.1), Color = skin.Legs }, CFrame.new(x, -4.1, -0.1))
+		previewPart(viewport, { Size = Vector3.new(0.4, 1.8, 0.4), Color = skin.Legs, Transparency = skin.Transparency }, CFrame.new(x, -3.2, 0.2))
+		previewPart(viewport, { Size = Vector3.new(0.9, 0.3, 1.1), Color = skin.Legs, Transparency = skin.Transparency }, CFrame.new(x, -4.1, -0.1))
 	end
 
 	local camera = Instance.new("Camera")
@@ -97,7 +97,7 @@ function Shop.start()
 		Visible = false,
 	})
 	local limit = Instance.new("UISizeConstraint")
-	limit.MaxSize = Vector2.new(660, 420)
+	limit.MaxSize = Vector2.new(700, 520)
 	limit.Parent = window
 
 	Ui.label(window, {
@@ -122,17 +122,34 @@ function Shop.start()
 		Text = "X",
 	})
 
-	local cards = Instance.new("Frame")
+	-- Four cards per row; on short screens the grid scrolls instead of squashing them.
+	local cards = Instance.new("ScrollingFrame")
 	cards.Name = "Cards"
 	cards.BackgroundTransparency = 1
+	cards.BorderSizePixel = 0
 	cards.Position = UDim2.new(0, 12, 0, 56)
 	cards.Size = UDim2.new(1, -24, 1, -98)
+	cards.CanvasSize = UDim2.new()
+	cards.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	cards.ScrollingDirection = Enum.ScrollingDirection.Y
+	cards.ScrollBarThickness = 6
+	cards.ScrollBarImageColor3 = Ui.ORANGE
 	cards.Parent = window
-	local layout = Instance.new("UIListLayout")
-	layout.FillDirection = Enum.FillDirection.Horizontal
-	layout.Padding = UDim.new(0, 8)
+	local COLUMNS, GAP, CARD_ASPECT, MIN_HEIGHT = 4, 8, 0.8, 140 -- CARD_ASPECT is width / height
+	local rows = math.ceil(#Skins.List / COLUMNS)
+	local layout = Instance.new("UIGridLayout")
+	layout.CellPadding = UDim2.fromOffset(GAP, GAP)
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Parent = cards
+	local function fitCards()
+		-- Leave room for the scroll bar so the last column isn't covered.
+		local width = math.max((cards.AbsoluteSize.X - cards.ScrollBarThickness - GAP * COLUMNS) / COLUMNS, 40)
+		-- Shorten the cards so every row fits, down to a minimum; below that the grid scrolls.
+		local fitHeight = (cards.AbsoluteSize.Y - GAP * (rows - 1)) / rows
+		layout.CellSize = UDim2.fromOffset(width, math.max(math.min(width / CARD_ASPECT, fitHeight), MIN_HEIGHT))
+	end
+	cards:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitCards)
+	fitCards()
 
 	local message = Ui.label(window, {
 		Name = "Message",
@@ -182,12 +199,10 @@ function Shop.start()
 		refresh()
 	end
 
-	local count = #Skins.List
 	for i, skin in Skins.List do
 		local card = Ui.panel(cards, {
 			Name = skin.Id,
 			LayoutOrder = i,
-			Size = UDim2.new(1 / count, -8 * (count - 1) / count, 1, 0),
 			BackgroundColor3 = Color3.fromRGB(95, 58, 32),
 		})
 		local camera = buildPreview(card, skin)
@@ -244,8 +259,9 @@ function Shop.start()
 			return
 		end
 		local angle = os.clock() * 0.8
-		local eye = Vector3.new(math.sin(angle) * 13, 1.5, -math.cos(angle) * 13)
-		local view = CFrame.lookAt(eye, Vector3.new(0, -0.2, 0))
+		-- Far enough back to fit the tallest hat (the chef's toque) and the feet.
+		local eye = Vector3.new(math.sin(angle) * 14, 1.5, -math.cos(angle) * 14)
+		local view = CFrame.lookAt(eye, Vector3.new(0, 0.1, 0))
 		for _, entry in entries do
 			entry.camera.CFrame = view
 		end
