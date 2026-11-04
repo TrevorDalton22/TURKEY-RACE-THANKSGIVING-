@@ -59,6 +59,12 @@ local Config = {
 		Finish = 10,
 		Places = { 25, 15, 10 },
 	},
+
+	-- The Wins board in the lobby.
+	Leaderboard = {
+		Size = 10,
+		RefreshSeconds = 60, -- global board; the Studio fallback refreshes every few seconds
+	},
 }
 
 return Config
