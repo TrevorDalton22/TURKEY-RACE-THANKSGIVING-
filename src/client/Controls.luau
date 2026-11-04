@@ -53,6 +53,13 @@ local function onUse(_, state: Enum.UserInputState)
 	return Enum.ContextActionResult.Sink
 end
 
+local function onGobble(_, state: Enum.UserInputState)
+	if state == Enum.UserInputState.Begin then
+		Remotes.Gobble:FireServer()
+	end
+	return Enum.ContextActionResult.Sink
+end
+
 -- Jumping while airborne flaps the wings for an extra hop.
 local function onJumpRequest()
 	local humanoid, root = humanoidAndRoot()
@@ -123,9 +130,11 @@ function Controls.start()
 	ContextActionService:BindAction("TurkeySprint", onSprint, true, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL3)
 	ContextActionService:BindAction("TurkeySlide", onSlide, true, Enum.KeyCode.Q, Enum.KeyCode.ButtonB)
 	ContextActionService:BindAction("TurkeyUse", onUse, true, Enum.KeyCode.E, Enum.KeyCode.ButtonX)
+	ContextActionService:BindAction("TurkeyGobble", onGobble, true, Enum.KeyCode.G, Enum.KeyCode.ButtonY)
 	ContextActionService:SetTitle("TurkeySprint", "Sprint")
 	ContextActionService:SetTitle("TurkeySlide", "Slide")
 	ContextActionService:SetTitle("TurkeyUse", "Use")
+	ContextActionService:SetTitle("TurkeyGobble", "Gobble")
 
 	UserInputService.JumpRequest:Connect(onJumpRequest)
 	Remotes.Knockback.OnClientEvent:Connect(onKnockback)

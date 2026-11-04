@@ -9,6 +9,7 @@ local Track = require(script.Parent.Track)
 local Stats = require(script.Parent.Stats)
 local Chef = require(script.Parent.Chef)
 local PowerUps = require(script.Parent.PowerUps)
+local Sfx = require(script.Parent.Sfx)
 
 local Remotes = ReplicatedStorage.Remotes
 
@@ -67,6 +68,7 @@ local function finish(player: Player, r)
 	end
 	player:SetAttribute("Finished", true)
 	notify(`🏁 {player.DisplayName} finished {Format.ordinal(count)}!`)
+	Sfx.gobble(player)
 end
 
 local function updateRacer(player: Player, r)
@@ -155,6 +157,7 @@ local function cookLast(list)
 			entry.r.cookedAt = os.clock()
 			entry.player:SetAttribute("Cooked", true)
 			notify(`🔥 {entry.player.DisplayName} got COOKED!`)
+			Sfx.all("Cooked")
 			sendToLobby(entry.player)
 			return
 		end

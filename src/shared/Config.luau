@@ -21,6 +21,9 @@ local Config = {
 	-- Racers below this height fell off the table and respawn at their last checkpoint.
 	FallHeight = 25,
 
+	-- Seconds between gobbles (G key) per player.
+	GobbleCooldown = 1.5,
+
 	Movement = {
 		WalkSpeed = 18,
 		SprintSpeed = 30,

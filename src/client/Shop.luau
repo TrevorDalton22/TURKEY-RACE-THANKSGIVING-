@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Skins = require(ReplicatedStorage.Shared.Skins)
+local Audio = require(script.Parent.Audio)
 local Ui = require(script.Parent.Ui)
 
 local Remotes = ReplicatedStorage.Remotes
@@ -175,6 +176,9 @@ function Shop.start()
 		busy = false
 		message.Text = if ok then text else "The shop is busy, try again!"
 		message.TextColor3 = if ok and success then GOOD_TEXT else BAD_TEXT
+		if ok and success then
+			Audio.play(if action == "Buy" then "Purchase" else "Pickup")
+		end
 		refresh()
 	end
 

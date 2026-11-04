@@ -5,6 +5,7 @@ local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Track = require(script.Parent.Track)
+local Sfx = require(script.Parent.Sfx)
 
 local Remotes = ReplicatedStorage.Remotes
 local settings = Config.Chef
@@ -109,6 +110,7 @@ end
 function Chef.begin(racers)
 	build()
 	Remotes.Notify:FireAllClients("👨‍🍳 THE CHEF IS COMING! RUN!")
+	Sfx.all("ChefRoar")
 
 	-- s is the chef's distance along the loop, on the same scale as racer progress.
 	local s = math.huge
@@ -162,6 +164,7 @@ function Chef.begin(racers)
 					local velocity = side * 45 - dir * 20 + Vector3.new(0, 60, 0)
 					Remotes.Knockback:FireClient(t.player, velocity, settings.StunSeconds)
 					Remotes.Notify:FireClient(t.player, "🍳 BONK! The chef got you!")
+					Sfx.all("Bonk", t.root.Position)
 				end
 			end
 		end

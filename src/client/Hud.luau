@@ -46,9 +46,9 @@ function Hud.start(controls)
 		label(gui, {
 			AnchorPoint = Vector2.new(0, 1),
 			Position = UDim2.new(0, 12, 1, -10),
-			Size = UDim2.new(0, 520, 0, 20),
+			Size = UDim2.new(0, 600, 0, 20),
 			TextXAlignment = Enum.TextXAlignment.Left,
-			Text = "Shift sprint  •  Space flap (in the air)  •  Q belly slide  •  E power-up",
+			Text = "Shift sprint  •  Space flap (in the air)  •  Q belly slide  •  E power-up  •  G gobble",
 		})
 	end
 

@@ -5,6 +5,7 @@ local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Track = require(script.Parent.Track)
+local Sfx = require(script.Parent.Sfx)
 
 local Remotes = ReplicatedStorage.Remotes
 local defs = Config.PowerUps
@@ -76,10 +77,11 @@ end
 
 local use = {}
 
-function use.DrumstickDash(player: Player)
+function use.DrumstickDash(player: Player, root: BasePart)
 	local def = defs.DrumstickDash
 	applySpeed(player, def.Multiplier, def.Seconds)
 	Remotes.Notify:FireClient(player, "🍗 DRUMSTICK DASH!")
+	Sfx.all("Dash", root)
 end
 
 function use.PieLauncher(player: Player, root: BasePart)
@@ -109,6 +111,7 @@ function use.PieLauncher(player: Player, root: BasePart)
 	pie.CFrame = CFrame.new(root.Position + dir * 4 + Vector3.new(0, 1, 0)) * CFrame.Angles(0, 0, math.rad(90))
 	pie.Parent = workspace
 	table.insert(pies, { part = pie, dir = dir, traveled = 0, owner = player, target = target })
+	Sfx.all("Throw", root.Position)
 end
 
 function use.ButterSlide(player: Player, root: BasePart)
@@ -136,6 +139,7 @@ local function updateBoxes()
 					local kind = KINDS[math.random(#KINDS)]
 					player:SetAttribute("PowerUp", kind)
 					Remotes.Notify:FireClient(player, `{defs[kind].Icon} Got {defs[kind].Name}! Press E`)
+					Sfx.to(player, "Pickup")
 					setBox(box, false)
 					task.delay(Config.ItemBoxRespawnSeconds, setBox, box, true)
 					break
@@ -170,6 +174,7 @@ local function updatePies(dt: number)
 			applySpeed(hit, def.SlowMultiplier, def.SlowSeconds)
 			knock(hit, pie.dir * 10 + Vector3.new(0, 25, 0), 0.4, "🥧 SPLAT! Pie to the face!")
 			Remotes.Notify:FireClient(pie.owner, `🥧 Direct hit on {hit.DisplayName}!`)
+			Sfx.all("Splat", pie.part.Position)
 		end
 		if hit or pie.traveled > def.Range then
 			pie.part:Destroy()
@@ -193,6 +198,7 @@ local function updateButters()
 					local angle = math.random() * math.pi * 2
 					local spin = Vector3.new(math.cos(angle), 0, math.sin(angle)) * 30 + Vector3.new(0, 20, 0)
 					knock(player, spin, def.StunSeconds, "🧈 Slipped on butter!")
+					Sfx.all("Slip", root.Position)
 					slipped = true
 					break
 				end
