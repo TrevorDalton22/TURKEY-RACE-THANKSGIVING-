@@ -8,6 +8,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
+local Ui = require(script.Parent.Ui)
 
 local Remotes = ReplicatedStorage.Remotes
 local player = Players.LocalPlayer
@@ -15,35 +16,8 @@ local player = Players.LocalPlayer
 local Hud = {}
 
 local MODE_NAMES = { Race = "Race", Elimination = "Don't Get Cooked" }
-local PANEL = Color3.fromRGB(60, 35, 20)
-local ORANGE = Color3.fromRGB(255, 150, 40)
-
-local function label(parent: Instance, props): TextLabel
-	local l = Instance.new("TextLabel")
-	l.BackgroundTransparency = 1
-	l.Font = Enum.Font.FredokaOne
-	l.TextColor3 = Color3.new(1, 1, 1)
-	l.TextStrokeTransparency = 0.4
-	l.TextScaled = true
-	for k, v in props do
-		l[k] = v
-	end
-	l.Parent = parent
-	return l
-end
-
-local function panel(parent: Instance, props): Frame
-	local f = Instance.new("Frame")
-	f.BackgroundColor3 = PANEL
-	f.BackgroundTransparency = 0.25
-	f.BorderSizePixel = 0
-	for k, v in props do
-		f[k] = v
-	end
-	Instance.new("UICorner").Parent = f
-	f.Parent = parent
-	return f
-end
+local ORANGE = Ui.ORANGE
+local label, panel = Ui.label, Ui.panel
 
 function Hud.start(controls)
 	local gui = Instance.new("ScreenGui")
