@@ -12,6 +12,7 @@
         "Knockback": { "$className": "RemoteEvent" },
         "Notify": { "$className": "RemoteEvent" },
         "Results": { "$className": "RemoteEvent" },
+        "Settings": { "$className": "RemoteEvent" },
         "Shop": { "$className": "RemoteFunction" },
         "Sound": { "$className": "RemoteEvent" },
         "UsePowerUp": { "$className": "RemoteEvent" }

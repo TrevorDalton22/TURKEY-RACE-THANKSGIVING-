@@ -1,4 +1,6 @@
--- Plays the sounds in shared/Sounds: ones the server asks for, countdown beeps, the finish cheer, and music.
+-- Plays the sounds in shared/Sounds: ones the server asks for, countdown beeps and the finish cheer.
+-- Every sound effect plays through the Effects sound group and the music (client/Music) through the Music
+-- group, so Settings can turn each one off.
 
 local ContentProvider = game:GetService("ContentProvider")
 local Debris = game:GetService("Debris")
@@ -6,7 +8,6 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
-local TweenService = game:GetService("TweenService")
 
 local Sounds = require(ReplicatedStorage.Shared.Sounds)
 
@@ -14,6 +15,15 @@ local Remotes = ReplicatedStorage.Remotes
 local player = Players.LocalPlayer
 
 local Audio = {}
+
+local function group(name: string): SoundGroup
+	local soundGroup = Instance.new("SoundGroup")
+	soundGroup.Name = name
+	soundGroup.Parent = SoundService
+	return soundGroup
+end
+Audio.Effects = group("TurkeyEffects")
+Audio.Music = group("TurkeyMusic")
 
 local templates: { [string]: Sound } = {}
 
@@ -30,6 +40,7 @@ local function makeTemplates()
 		sound.RollOffMode = Enum.RollOffMode.InverseTapered
 		sound.RollOffMinDistance = 12
 		sound.RollOffMaxDistance = def.Range or 200
+		sound.SoundGroup = Audio.Effects
 		sound.Parent = folder
 		templates[name] = sound
 	end
@@ -100,15 +111,6 @@ function Audio.start()
 			Audio.play("Cheer")
 		end
 	end)
-
-	-- Music plays the whole time and dips during races so the effects cut through.
-	local music = Audio.play("Music")
-	if music then
-		player:GetAttributeChangedSignal("Racing"):Connect(function()
-			local volume = (Sounds.Music.Volume or 0.3) * (if player:GetAttribute("Racing") then 0.6 else 1)
-			TweenService:Create(music, TweenInfo.new(1.5), { Volume = volume }):Play()
-		end)
-	end
 end
 
 return Audio

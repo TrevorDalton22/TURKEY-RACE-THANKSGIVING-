@@ -2,12 +2,19 @@
 
 local Config = {
 	MaxPlayers = 8,
-	MinPlayersToStart = 1,
 
-	IntermissionSeconds = 12,
+	-- Racers join by standing in the Join Race circle in the lobby (Workspace.Lobby.JoinCircle). The
+	-- countdown starts once MinPlayersToStart are in it, starts over if they all step out, and races
+	-- whoever is in it when it runs out.
+	MinPlayersToStart = 1,
+	IntermissionSeconds = 15,
+	QuickStartSeconds = 5, -- when everyone in the server is in the circle, the countdown skips ahead to this
 	CountdownSeconds = 3,
-	ResultsSeconds = 8,
+	GateSeconds = 4, -- the starting gate is taken down this long after GO
 	RaceTimeLimitSeconds = 150,
+	-- After a race: the podium cutscene (PodiumSeconds), then the results board, ResultsSeconds in all.
+	PodiumSeconds = 8,
+	ResultsSeconds = 14,
 	Laps = 3, -- a map can override this with a Laps attribute
 
 	-- The map changes every race; the mode changes after every map has been played,

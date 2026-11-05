@@ -41,8 +41,17 @@ local Sounds: { [string]: Def } = {
 	-- Shop
 	Purchase = { Id = 120891770644830, Volume = 0.6 },
 
-	-- "The Ramblers' String Band Special" (APM)
-	Music = { Id = 1840556856, Volume = 0.3, Looped = true },
+	-- Lobby and race start: a chime when you step into the Join Race circle (PSE), and a whoosh as the
+	-- starting gate swings open (PSE)
+	Join = { Id = 9125540237, Volume = 0.5, Speed = 1.25 },
+	GateOpen = { Id = 9114158497, Volume = 0.8, Speed = 0.75, Range = 150 },
+
+	-- Podium: a chime as 3rd and 2nd are shown, a drum roll, then a fanfare for the winner (APM)
+	Reveal = { Id = 9125540237, Volume = 0.7 },
+	DrumRoll = { Id = 1845231195, Volume = 0.6 },
+	Fanfare = { Id = 9045751375, Volume = 0.7, Range = 300 },
+
+	-- The background music is in shared/Playlists.
 }
 
 return Sounds

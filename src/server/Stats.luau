@@ -3,6 +3,8 @@
 --   skins        owned skin ids, published to clients as the attributes Skin (equipped) and OwnedSkins
 --   profile      XP, Harvest Pass progress, XP boost time and recent Robux receipts (see Profile);
 --                Progression and Robux work with it and publish what clients need
+--   settings     music and sound effects on or off, as the attributes MusicOn and SfxOn (nil means on);
+--                clients change them through Remotes.Settings
 -- Changes are saved a moment later in one go (saveSoon), and when the player leaves.
 
 local DataStoreService = game:GetService("DataStoreService")
@@ -47,6 +49,9 @@ local TRIES = 3
 local SAVE_DELAY = 2
 local MAX_RECEIPTS = 50
 
+-- Each setting a client can change, and the player attribute it's published as.
+local SETTINGS = { Music = "MusicOn", Sfx = "SfxOn" }
+
 -- Calls a DataStore method, trying again after a short wait if Roblox's servers hiccup.
 local function attempt(method, ...): (boolean, any)
 	local ok, result
@@ -81,6 +86,10 @@ local function save(player: Player): boolean
 	for id in owned[player] do
 		table.insert(skins, id)
 	end
+	local settings = {}
+	for name, attribute in SETTINGS do
+		settings[name] = player:GetAttribute(attribute) ~= false
+	end
 	local data = {
 		Feathers = leaderstats.Feathers.Value,
 		Wins = leaderstats.Wins.Value,
@@ -90,6 +99,7 @@ local function save(player: Player): boolean
 		Season = { Id = Season.Id, Xp = profile.SeasonXp, Free = profile.FreeClaimed, Premium = profile.PremiumClaimed },
 		BoostUntil = profile.BoostUntil,
 		Receipts = profile.Receipts,
+		Settings = settings,
 	}
 	saving += 1
 	local success, saveErr = attempt(store.SetAsync, tostring(player.UserId), data)
@@ -144,6 +154,13 @@ local function load(player: Player)
 				profile.Xp += data.Xp or 0
 				profile.BoostUntil = math.max(profile.BoostUntil, data.BoostUntil or 0)
 				profile.Receipts = data.Receipts or {}
+				-- Unless the player already changed it while their data was loading.
+				for name, attribute in SETTINGS do
+					local saved = data.Settings and data.Settings[name]
+					if typeof(saved) == "boolean" and player:GetAttribute(attribute) == nil then
+						player:SetAttribute(attribute, saved)
+					end
+				end
 				-- A different season id means a new season: pass progress starts over.
 				local season = data.Season
 				if season and season.Id == Season.Id then
@@ -280,6 +297,13 @@ function Stats.equip(player: Player, skinId: string)
 end
 
 function Stats.start()
+	ReplicatedStorage.Remotes.Settings.OnServerEvent:Connect(function(player, name: unknown, on: unknown)
+		local attribute = typeof(name) == "string" and SETTINGS[name]
+		if attribute and typeof(on) == "boolean" and player:GetAttribute(attribute) ~= on then
+			player:SetAttribute(attribute, on)
+			Stats.saveSoon(player)
+		end
+	end)
 	Players.PlayerAdded:Connect(load)
 	for _, player in Players:GetPlayers() do
 		task.spawn(load, player)

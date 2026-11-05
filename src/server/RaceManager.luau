@@ -1,4 +1,5 @@
--- Runs the round loop: wait for players, intermission, countdown, race, results.
+-- Runs the round loop: wait for someone to step into the Join Race circle, count down, line the joined
+-- turkeys up behind the starting gate, race, then the podium and results.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -12,6 +13,9 @@ local Chef = require(script.Parent.Chef)
 local PowerUps = require(script.Parent.PowerUps)
 local Hazards = require(script.Parent.Hazards)
 local Sfx = require(script.Parent.Sfx)
+local JoinCircle = require(script.Parent.JoinCircle)
+local Podium = require(script.Parent.Podium)
+local StartGate = require(script.Parent.StartGate)
 
 local Remotes = ReplicatedStorage.Remotes
 
@@ -23,6 +27,9 @@ local racers = {}
 local raceStart = 0
 local round = 0
 local laps = Config.Laps -- for the current map
+
+-- Player attributes that only mean something during a race.
+local RACE_ATTRIBUTES = { "Racing", "Lap", "Place", "Finished", "Cooked" }
 
 local function setPhase(phase: string, seconds: number?)
 	ReplicatedStorage:SetAttribute("Phase", phase)
@@ -173,15 +180,17 @@ local function cookLast(list)
 	end
 end
 
-local function runRace(mode: string)
+-- Races `joined` (the turkeys in the Join Race circle). Returns the results for clients and the podium
+-- (the top three who weren't cooked, in order), or nil if nobody could race after all.
+local function runRace(mode: string, joined: { Player }): (any, { Player })
 	local entrants = {}
-	for _, player in Players:GetPlayers() do
-		if rootOf(player) and #entrants < Config.MaxPlayers then
+	for _, player in joined do
+		if player.Parent and rootOf(player) and #entrants < Config.MaxPlayers then
 			table.insert(entrants, player)
 		end
 	end
 	if #entrants == 0 then
-		return
+		return nil, {}
 	end
 
 	local _, forward = Track.pointAt(0)
@@ -197,6 +206,7 @@ local function runRace(mode: string)
 		player:SetAttribute("Cooked", false)
 	end
 
+	local gate = StartGate.build()
 	setPhase("Countdown", Config.CountdownSeconds)
 	task.wait(Config.CountdownSeconds)
 	raceStart = os.clock()
@@ -209,6 +219,8 @@ local function runRace(mode: string)
 	end
 
 	setPhase("Racing", Config.RaceTimeLimitSeconds)
+	-- Clients swing the gate open now; take it down once everyone is through.
+	task.delay(Config.GateSeconds, gate.Destroy, gate)
 	notify(if mode == "Elimination" then "GO! Last turkey gets COOKED!" else "GO! GO! GOBBLE!")
 	PowerUps.begin(racers)
 	Hazards.begin(racers)
@@ -248,7 +260,7 @@ local function runRace(mode: string)
 	Hazards.stop()
 	PowerUps.stop()
 
-	local results = {}
+	local results, podium = {}, {}
 	local xpRules = Config.Progression.Xp
 	for place, entry in standings() do
 		local player, r = entry.player, entry.r
@@ -258,28 +270,66 @@ local function runRace(mode: string)
 			xp += xpRules.Finish + (xpRules.Places[place] or 0)
 		end
 		Stats.add(player, feathers, if place == 1 and r.finishTime then 1 else 0)
+		local onPodium = not r.cooked and #podium < 3
+		if onPodium then
+			table.insert(podium, player)
+		end
 		table.insert(results, {
+			UserId = player.UserId,
 			Name = player.DisplayName,
 			Place = place,
+			Podium = if onPodium then #podium else nil,
 			Time = r.finishTime,
 			Status = if r.finishTime then "Finished" elseif r.cooked then "Cooked" else "DNF",
 			Feathers = feathers,
 			Xp = Progression.award(player, xp),
 		})
 	end
-	Remotes.Results:FireAllClients(results)
+	return results, podium
 end
 
-local function cleanup()
-	for player in racers do
+-- Ends the race: the top three go up on the podium, everyone else back to the lobby (turkeys cooked in
+-- Elimination are already there), and clients get the results for the cutscene and results board.
+local function finishRace(results, podium: { Player })
+	local placed = Podium.show(podium)
+	for player, r in racers do
 		if player.Parent then
-			sendToLobby(player)
-			for _, name in { "Racing", "Lap", "Place", "Finished", "Cooked" } do
+			for _, name in RACE_ATTRIBUTES do
 				player:SetAttribute(name, nil)
+			end
+			if not table.find(placed, player) and not r.cooked then
+				sendToLobby(player)
 			end
 		end
 	end
 	table.clear(racers)
+	-- Anyone who couldn't be put on their stand isn't shown there in the cutscene.
+	for _, entry in results do
+		if entry.Podium and not table.find(placed, Players:GetPlayerByUserId(entry.UserId)) then
+			entry.Podium = nil
+		end
+	end
+	Remotes.Results:FireAllClients(results)
+end
+
+-- The countdown before a race, while the Join Race circle fills up. Returns false if everyone stepped back
+-- out, so the round loop waits again. Skips ahead once everyone in the server has joined.
+local function intermission(): boolean
+	local endsAt = os.clock() + Config.IntermissionSeconds
+	setPhase("Intermission", Config.IntermissionSeconds)
+	while os.clock() < endsAt do
+		task.wait(0.1)
+		local joined = JoinCircle.count()
+		if joined < Config.MinPlayersToStart then
+			return false
+		end
+		local quick = Config.QuickStartSeconds
+		if joined >= #Players:GetPlayers() and endsAt - os.clock() > quick + 0.5 then
+			endsAt = os.clock() + quick
+			setPhase("Intermission", quick)
+		end
+	end
+	return true
 end
 
 function RaceManager.start()
@@ -299,19 +349,17 @@ function RaceManager.start()
 	end
 
 	while true do
-		setPhase("Waiting")
-		while #Players:GetPlayers() < Config.MinPlayersToStart do
-			task.wait(1)
-		end
-		-- Pick the next race before intermission so the lobby can show it. The map changes every race
-		-- and the mode after each full rotation of maps, so every map gets played in both modes.
+		-- Pick the next race first so the lobby can show it. The map changes every race and the mode after
+		-- each full rotation of maps, so every map gets played in both modes.
 		local map = Track.Maps[round % #Track.Maps + 1]
 		local mode = Config.Modes[math.floor(round / #Track.Maps) % #Config.Modes + 1]
 		ReplicatedStorage:SetAttribute("Map", map.DisplayName)
 		ReplicatedStorage:SetAttribute("Mode", mode)
-		setPhase("Intermission", Config.IntermissionSeconds)
-		task.wait(Config.IntermissionSeconds)
-		if #Players:GetPlayers() < Config.MinPlayersToStart then
+		setPhase("Waiting")
+		while JoinCircle.count() < Config.MinPlayersToStart do
+			task.wait(0.25)
+		end
+		if not intermission() then
 			continue
 		end
 
@@ -319,10 +367,13 @@ function RaceManager.start()
 		Track.use(map)
 		laps = map.Laps or Config.Laps
 		ReplicatedStorage:SetAttribute("Laps", laps)
-		runRace(mode)
-		setPhase("Results", Config.ResultsSeconds)
-		task.wait(Config.ResultsSeconds)
-		cleanup()
+		local results, podium = runRace(mode, JoinCircle.players())
+		if results then
+			finishRace(results, podium)
+			setPhase("Results", Config.ResultsSeconds)
+			task.wait(Config.ResultsSeconds)
+			Podium.release()
+		end
 	end
 end
 

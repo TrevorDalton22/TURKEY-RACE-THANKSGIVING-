@@ -9,6 +9,7 @@ local UserInputService = game:GetService("UserInputService")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Ui = require(script.Parent.Ui)
+local Cutscene = require(script.Parent.Cutscene)
 
 local Remotes = ReplicatedStorage.Remotes
 local player = Players.LocalPlayer
@@ -84,7 +85,12 @@ function Hud.start(controls)
 		bannerTween:Play()
 	end)
 
+	local resultsToken = 0
 	Remotes.Results.OnClientEvent:Connect(function(list)
+		-- Racers see the podium cutscene first.
+		resultsToken += 1
+		local token = resultsToken
+		local holdBack = if Cutscene.plays(list) then Config.PodiumSeconds else 0
 		for _, child in rows:GetChildren() do
 			if child:IsA("TextLabel") then
 				child:Destroy()
@@ -99,9 +105,15 @@ function Hud.start(controls)
 				TextColor3 = if entry.Place == 1 then ORANGE else Color3.new(1, 1, 1),
 			})
 		end
-		results.Visible = true
+		task.delay(holdBack, function()
+			if token == resultsToken then
+				results.Visible = true
+			end
+		end)
 		task.delay(Config.ResultsSeconds, function()
-			results.Visible = false
+			if token == resultsToken then
+				results.Visible = false
+			end
 		end)
 	end)
 
@@ -111,17 +123,20 @@ function Hud.start(controls)
 		local mode = MODE_NAMES[ReplicatedStorage:GetAttribute("Mode") or "Race"] or "Race"
 		local map = ReplicatedStorage:GetAttribute("Map") or ""
 		local racing = player:GetAttribute("Racing") == true
+		local inCircle = player:GetAttribute("InCircle") == true
 
 		if phase == "Waiting" then
-			status.Text = "Waiting for turkeys..."
+			status.Text = "🏁 Step into the JOIN RACE circle to race!"
 		elseif phase == "Intermission" then
-			status.Text = `Next race in {math.ceil(remaining)}  •  {map}  •  {mode}`
+			status.Text = if inCircle then `✅ You're in!  Race starts in {math.ceil(remaining)}  •  {map}  •  {mode}`
+				else `Race starts in {math.ceil(remaining)}  •  Step into the JOIN RACE circle to play!`
 		elseif phase == "Countdown" then
-			status.Text = `Get ready!  •  {map}  •  {mode}`
+			status.Text = if racing then `Get ready!  •  {map}  •  {mode}` else "Race starting!  •  Step into the JOIN RACE circle for the next one"
 		elseif phase == "Racing" then
-			status.Text = if racing then `{mode}  •  {Format.clock(remaining)}` else "Race in progress, next one soon!"
+			status.Text = if racing then `{mode}  •  {Format.clock(remaining)}`
+				else "Race in progress  •  Step into the JOIN RACE circle for the next one!"
 		else
-			status.Text = "Results"
+			status.Text = "🏆 Results"
 		end
 
 		countdown.Visible = phase == "Countdown" and racing
@@ -149,7 +164,7 @@ function Hud.start(controls)
 
 		-- Out of the way while the shop or pass window is open.
 		local windowOpen = false
-		for _, name in { "TurkeyShop", "TurkeyPass" } do
+		for _, name in { "TurkeyShop", "TurkeyPass", "TurkeySettings" } do
 			local window = gui.Parent:FindFirstChild(name) and gui.Parent[name]:FindFirstChild("Window")
 			windowOpen = windowOpen or (window ~= nil and window.Visible)
 		end
