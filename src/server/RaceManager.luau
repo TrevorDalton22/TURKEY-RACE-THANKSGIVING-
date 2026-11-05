@@ -44,7 +44,7 @@ local function placeOnPath(player: Player, s: number)
 		return
 	end
 	local pos, dir = Track.pointAt(s)
-	pos += Vector3.new(0, 4, 0)
+	pos += Vector3.new(0, Config.Movement.RideHeight + 1, 0)
 	player.Character:PivotTo(CFrame.lookAt(pos, pos + dir))
 	root.AssemblyLinearVelocity = Vector3.zero
 end
@@ -52,7 +52,7 @@ end
 local function sendToLobby(player: Player)
 	local spawn = workspace:FindFirstChildOfClass("SpawnLocation")
 	if player.Character and spawn then
-		local offset = Vector3.new(math.random(-8, 8), 4, math.random(-8, 8))
+		local offset = Vector3.new(math.random(-8, 8), Config.Movement.RideHeight + 1, math.random(-8, 8))
 		player.Character:PivotTo(spawn.CFrame + offset)
 	end
 end
@@ -187,7 +187,7 @@ local function runRace(mode: string)
 	local _, forward = Track.pointAt(0)
 	for i, player in entrants do
 		racers[player] = { lap = 0, nextGate = 1, progress = 0, cooked = false }
-		local pos = Track.StartPads[i].Position + Vector3.new(0, 3.5, 0)
+		local pos = Track.StartPads[i].Position + Vector3.new(0, Config.Movement.RideHeight + 0.5, 0)
 		player.Character:PivotTo(CFrame.lookAt(pos, pos + forward))
 		rootOf(player).Anchored = true
 		player:SetAttribute("Racing", true)

@@ -31,6 +31,9 @@ local Sounds: { [string]: Def } = {
 	Tornado = { Id = 9114158497, Volume = 0.8, Speed = 0.55, Range = 150 }, -- PSE whoosh, slowed into wind
 	Spin = { Id = 136774133309136, Volume = 0.9, Speed = 0.8 },
 
+	-- Rushing air while riding fast; SpeedFx turns it up with speed (Volume is the loudest it gets)
+	Wind = { Id = 74693111419814, Volume = 0.5, Looped = true },
+
 	-- Map hazards
 	PumpkinHit = { Id = 3765689841, Volume = 0.9, Speed = 0.6, Range = 200 }, -- the bonk, lower and duller
 	Sizzle = { Id = 9119165650, Volume = 0.8, Range = 150 }, -- PSE, a hot burner

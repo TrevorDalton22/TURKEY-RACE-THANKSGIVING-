@@ -223,12 +223,13 @@ function use.MashedPotatoShield(player: Player, root: BasePart)
 	local bubble = effectPart({
 		Name = "PotatoShield",
 		Shape = Enum.PartType.Ball,
-		Size = Vector3.one * 10,
+		-- Big enough for the rider and the turkey under them.
+		Size = Vector3.one * 14,
 		Color = Color3.fromRGB(245, 235, 195),
 		Transparency = 0.55,
 		Anchored = false,
 		Massless = true,
-		CFrame = root.CFrame + Vector3.new(0, 1, 0),
+		CFrame = root.CFrame - Vector3.new(0, 2.5, 0),
 	})
 	local weld = Instance.new("WeldConstraint")
 	weld.Part0 = root
@@ -313,7 +314,7 @@ local function updateBoxes()
 		local root = activeRoot(player)
 		if root and (player:GetAttribute("PowerUp") or "") == "" then
 			for _, box in Track.ItemBoxes do
-				if box:GetAttribute("Active") and (box.Position - root.Position).Magnitude < 6 then
+				if box:GetAttribute("Active") and (box.Position - root.Position).Magnitude < 7 then
 					local kind = KINDS[math.random(#KINDS)]
 					player:SetAttribute("PowerUp", kind)
 					Remotes.Notify:FireClient(player, `{defs[kind].Icon} Got {defs[kind].Name}! Press E`)
@@ -343,7 +344,7 @@ local function updatePies(dt: number)
 		local victim = nil
 		for other in racers do
 			local otherRoot = other ~= pie.owner and activeRoot(other)
-			if otherRoot and (otherRoot.Position - pie.part.Position).Magnitude < 5 then
+			if otherRoot and (otherRoot.Position - pie.part.Position).Magnitude < 6 then
 				victim = other
 				break
 			end
@@ -375,7 +376,8 @@ local function updateButters()
 			-- The owner gets a moment to waddle clear of their own butter.
 			if root and (player ~= butter.owner or now - butter.placedAt > 1.5) then
 				local offset = root.Position - butter.part.Position
-				if Vector3.new(offset.X, 0, offset.Z).Magnitude < 4.5 and math.abs(offset.Y) < 5 then
+				-- The rider sits RideHeight above the butter; their turkey's feet are the ones that slip.
+				if Vector3.new(offset.X, 0, offset.Z).Magnitude < 5 and math.abs(offset.Y) < Config.Movement.RideHeight + 2 then
 					local angle = math.random() * math.pi * 2
 					local spin = Vector3.new(math.cos(angle), 0, math.sin(angle)) * 30 + Vector3.new(0, 20, 0)
 					if PowerUps.hit(player, spin, def.StunSeconds, "🧈 Slipped on butter!") then

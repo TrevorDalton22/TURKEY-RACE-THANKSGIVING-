@@ -29,12 +29,6 @@ local CARD = Color3.fromRGB(95, 58, 32)
 local GOOD_TEXT = Color3.fromRGB(150, 235, 120)
 local BAD_TEXT = Color3.fromRGB(255, 130, 110)
 
--- Where each piece's host body part sits on the preview turkey (torso at the origin).
-local PREVIEW_HOSTS = {
-	Torso = { CFrame.new() },
-	Head = { CFrame.new(0, 1.5, 0) },
-	Wing = { CFrame.new(-1.5, 0.2, 0), CFrame.new(1.5, 0.2, 0) },
-}
 
 -- Which pass tier gives each pass skin.
 local passTier: { [string]: number } = {}
@@ -46,16 +40,21 @@ for tier, rewards in Season.Rewards do
 	end
 end
 
-local function previewPart(parent: Instance, props, cframe: CFrame)
+local function previewPart(parent: Instance, piece: Skins.Piece)
 	local p = Instance.new("Part")
 	p.Anchored = true
 	p.TopSurface = Enum.SurfaceType.Smooth
 	p.BottomSurface = Enum.SurfaceType.Smooth
-	p.Material = Enum.Material.SmoothPlastic -- matches the suit the server builds
-	for k, v in props do
+	p.Material = Enum.Material.SmoothPlastic -- matches the turkey the server builds
+	for k, v in piece.Props do
 		p[k] = v
 	end
-	p.CFrame = cframe
+	if piece.Mesh == "Sphere" then
+		local mesh = Instance.new("SpecialMesh")
+		mesh.MeshType = Enum.MeshType.Sphere
+		mesh.Parent = p
+	end
+	p.CFrame = piece.Offset
 	p.Parent = parent
 end
 
@@ -69,15 +68,9 @@ local function buildPreview(card: Frame, skin): Camera
 	Instance.new("UICorner").Parent = viewport
 	viewport.Parent = card
 
+	-- The turkey with its body at the origin, in its resting pose.
 	for _, piece in Skins.pieces(skin.Id) do
-		for _, host in PREVIEW_HOSTS[piece.Host] do
-			previewPart(viewport, piece.Props, host * piece.Offset)
-		end
-	end
-	-- In game the legs are the avatar's own; the preview gets simple ones.
-	for _, x in { -0.5, 0.5 } do
-		previewPart(viewport, { Size = Vector3.new(0.4, 1.8, 0.4), Color = skin.Legs, Transparency = skin.Transparency }, CFrame.new(x, -3.2, 0.2))
-		previewPart(viewport, { Size = Vector3.new(0.9, 0.3, 1.1), Color = skin.Legs, Transparency = skin.Transparency }, CFrame.new(x, -4.1, -0.1))
+		previewPart(viewport, piece)
 	end
 
 	local camera = Instance.new("Camera")
@@ -474,9 +467,9 @@ function Shop.start(passApi)
 			return
 		end
 		local angle = os.clock() * 0.8
-		-- Far enough back to fit the tallest hat (the chef's toque) and the feet.
-		local eye = Vector3.new(math.sin(angle) * 14, 1.5, -math.cos(angle) * 14)
-		local view = CFrame.lookAt(eye, Vector3.new(0, 0.1, 0))
+		-- Far enough back to fit the tail fan, the tallest hat (the chef's toque) and the feet.
+		local eye = Vector3.new(math.sin(angle) * 19, 3, -math.cos(angle) * 19)
+		local view = CFrame.lookAt(eye, Vector3.new(0, 0.9, 0))
 		for _, entry in entries do
 			entry.camera.CFrame = view
 		end

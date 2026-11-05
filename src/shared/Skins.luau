@@ -243,23 +243,43 @@ function Skins.source(skin): string
 	return if skin.Robux then "Robux" elseif skin.Pass then "Pass" else "Feathers"
 end
 
--- Sparkle: set on the body piece when its skin glitters; the suit adds the particles.
-export type Piece = { Host: string, Props: { [string]: any }, Offset: CFrame, Sparkle: Color3? }
+-- The turkey you ride. Its pieces are laid out around the center of its body ("body space": -Z is
+-- forward, +Y is up). The body, head, each wing and each leg are separate groups joined at the pivots
+-- in Skins.Joints, so clients can animate them (running legs, a bobbing head, flapping wings).
+Skins.Joints = {
+	Body = CFrame.new(),
+	Head = CFrame.new(0, 1.1, -2.2), -- base of the neck
+	WingL = CFrame.new(-2, 0.7, -0.4), -- shoulders
+	WingR = CFrame.new(2, 0.7, -0.4),
+	LegL = CFrame.new(-0.85, -1.4, 0.3), -- hips
+	LegR = CFrame.new(0.85, -1.4, 0.3),
+}
+-- From the center of the body down to the soles of the feet.
+Skins.FootDepth = 3.85
+-- Where the head sits, for hats and the like.
+local HEAD = CFrame.new(0, 3.1, -2.95)
 
--- The parts that make up a skin's suit. Host is the body part a piece rides on:
--- "Torso" (UpperTorso or Torso), "Head", or "Wing" (one per upper arm).
+-- Group: which of Skins.Joints the piece moves with. Mesh "Sphere" makes a block an ellipsoid.
+-- Sparkle: set on the body when its skin glitters; the mount adds the particles.
+export type Piece = { Group: string, Props: { [string]: any }, Offset: CFrame, Mesh: string?, Sparkle: Color3? }
+
+-- The parts that make up a skin's turkey, in body space.
 function Skins.pieces(id: string?): { Piece }
 	local skin = Skins.get(id)
 	local ball, cylinder = Enum.PartType.Ball, Enum.PartType.Cylinder
 	-- A cylinder's axis is its X, so this turns it upright.
 	local upright = CFrame.Angles(0, 0, math.pi / 2)
 	local list = {}
-	local function add(host: string, props, offset: CFrame): Piece
-		local piece = { Host = host, Props = props, Offset = offset }
+	local function add(group: string, props, offset: CFrame, mesh: string?): Piece
+		local piece = { Group = group, Props = props, Offset = offset, Mesh = mesh }
 		table.insert(list, piece)
 		return piece
 	end
-	-- The turkey's own feathers and skin, as opposed to hats and other add-ons.
+	-- Head pieces are placed relative to the middle of the head.
+	local function head(props, offset: CFrame): Piece
+		return add("Head", props, HEAD * offset)
+	end
+	-- The turkey's own feathers and skin, as opposed to the saddle, hats and other add-ons.
 	local function turkey(props, shiny: boolean?)
 		props.Transparency = skin.Transparency
 		if shiny then
@@ -268,69 +288,88 @@ function Skins.pieces(id: string?): { Piece }
 		return props
 	end
 
-	local body = add("Torso", turkey({ Shape = ball, Size = Vector3.new(4.2, 4.2, 4.2), Color = skin.Body, Material = skin.BodyMaterial }, true), CFrame.new(0, -0.3, 0.2))
+	-- Body, and a saddle for the rider.
+	local body = add("Body", turkey({ Size = Vector3.new(4.4, 3.8, 5.6), Color = skin.Body, Material = skin.BodyMaterial }, true), CFrame.new(), "Sphere")
 	body.Sparkle = skin.Sparkle
+	add("Body", { Size = Vector3.new(3.8, 0.15, 3.2), Color = rgb(200, 45, 40) }, CFrame.new(0, 1.82, 0.25))
+	add("Body", { Size = Vector3.new(3, 0.6, 2.6), Color = rgb(125, 65, 30) }, CFrame.new(0, 2, 0.25))
+	add("Body", { Size = Vector3.new(3.1, 0.2, 0.5), Color = rgb(255, 200, 60), Reflectance = 0.15 }, CFrame.new(0, 2.2, -1.05))
+
+	-- Tail fan, leaning back behind the rider.
 	for i = -2, 2 do
-		local feather = CFrame.new(0, 0.6, 1.9) * CFrame.Angles(0, 0, math.rad(i * 25)) * CFrame.new(0, 1.6, 0)
+		local feather = CFrame.new(0, 0.9, 2.5) * CFrame.Angles(math.rad(15), 0, 0) * CFrame.Angles(0, 0, math.rad(i * 24)) * CFrame.new(0, 2.3, 0)
 		local color = if #skin.Tail >= 5 then skin.Tail[i + 3] else skin.Tail[math.abs(i) + 1]
-		add("Torso", turkey({ Size = Vector3.new(1.2, 3.6, 0.3), Color = color, Material = skin.TailMaterial }), feather)
+		add("Body", turkey({ Size = Vector3.new(1.5, 4.6, 0.3), Color = color, Material = skin.TailMaterial }), feather)
 	end
 
-	-- Wings ride on the upper arms, so the normal arm animations flap them.
-	add("Wing", turkey({ Size = Vector3.new(0.5, 2.2, 1.6), Color = skin.Body, Material = skin.BodyMaterial }, true), CFrame.new(0, -0.3, 0.2))
+	-- Wings fold against the sides.
+	for _, side in { -1, 1 } do
+		local joint = if side < 0 then "WingL" else "WingR"
+		add(joint, turkey({ Size = Vector3.new(0.5, 2.4, 3.8), Color = skin.Body, Material = skin.BodyMaterial }, true), CFrame.new(side * 2.1, 0.1, 0.5), "Sphere")
+	end
 
-	add("Head", turkey({ Shape = ball, Size = Vector3.new(1.9, 1.9, 1.9), Color = skin.Head }, true), CFrame.new())
-	add("Head", turkey({ Size = Vector3.new(0.5, 0.4, 0.7), Color = skin.Beak }), CFrame.new(0, -0.1, -1))
-	add("Head", turkey({ Size = Vector3.new(0.35, 0.9, 0.35), Color = skin.Wattle }), CFrame.new(0.15, -0.65, -0.95))
+	-- Legs and feet.
+	for _, side in { -1, 1 } do
+		local joint = if side < 0 then "LegL" else "LegR"
+		local hip = Skins.Joints[joint]
+		add(joint, turkey({ Size = Vector3.new(0.45, 2.3, 0.45), Color = skin.Legs }), hip * CFrame.new(0, -1.15, 0))
+		add(joint, turkey({ Size = Vector3.new(1.1, 0.3, 1.4), Color = skin.Legs }), hip * CFrame.new(0, -2.3, -0.35))
+	end
+
+	-- Neck and head.
+	add("Head", turkey({ Size = Vector3.new(1.1, 2.4, 1.1), Color = skin.Head }, true), CFrame.new(0, 2.05, -2.6) * CFrame.Angles(math.rad(-16), 0, 0))
+	head(turkey({ Shape = ball, Size = Vector3.new(1.9, 1.9, 1.9), Color = skin.Head }, true), CFrame.new())
+	head(turkey({ Size = Vector3.new(0.5, 0.4, 0.7), Color = skin.Beak }), CFrame.new(0, -0.1, -1))
+	head(turkey({ Size = Vector3.new(0.35, 0.9, 0.35), Color = skin.Wattle }), CFrame.new(0.15, -0.65, -0.95))
 	for _, x in { -0.4, 0.4 } do
-		add("Head", { Shape = ball, Size = Vector3.new(0.35, 0.35, 0.35), Color = rgb(0, 0, 0) }, CFrame.new(x, 0.25, -0.85))
+		head({ Shape = ball, Size = Vector3.new(0.35, 0.35, 0.35), Color = rgb(0, 0, 0) }, CFrame.new(x, 0.25, -0.85))
 	end
 
 	if skin.Extra == "Shades" then
-		add("Head", { Size = Vector3.new(1.5, 0.4, 0.2), Color = rgb(20, 20, 25), Reflectance = 0.3 }, CFrame.new(0, 0.28, -0.9))
+		head({ Size = Vector3.new(1.5, 0.4, 0.2), Color = rgb(20, 20, 25), Reflectance = 0.3 }, CFrame.new(0, 0.28, -0.9))
 	elseif skin.Extra == "Crown" then
 		local gold = rgb(255, 200, 40)
-		add("Head", { Shape = cylinder, Size = Vector3.new(0.5, 1.3, 1.3), Color = gold, Reflectance = 0.2 }, CFrame.new(0, 1.05, 0) * upright)
+		head({ Shape = cylinder, Size = Vector3.new(0.5, 1.3, 1.3), Color = gold, Reflectance = 0.2 }, CFrame.new(0, 1.05, 0) * upright)
 		for i = 0, 3 do
 			local angle = i * math.pi / 2
 			local spike = CFrame.new(math.sin(angle) * 0.5, 1.45, math.cos(angle) * 0.5) * CFrame.Angles(0, angle, math.pi / 4)
-			add("Head", { Size = Vector3.new(0.3, 0.3, 0.3), Color = gold, Reflectance = 0.2 }, spike)
+			head({ Size = Vector3.new(0.3, 0.3, 0.3), Color = gold, Reflectance = 0.2 }, spike)
 		end
-		add("Head", { Shape = ball, Size = Vector3.new(0.3, 0.3, 0.3), Color = rgb(220, 30, 50) }, CFrame.new(0, 1.05, -0.66))
+		head({ Shape = ball, Size = Vector3.new(0.3, 0.3, 0.3), Color = rgb(220, 30, 50) }, CFrame.new(0, 1.05, -0.66))
 	elseif skin.Extra == "PilgrimHat" then
 		-- A tall black hat with a brim, a band and a gold buckle on the front.
 		local hat, band, gold = rgb(40, 36, 36), rgb(15, 15, 18), rgb(255, 200, 40)
-		add("Head", { Shape = cylinder, Size = Vector3.new(0.15, 2.3, 2.3), Color = hat }, CFrame.new(0, 0.82, 0.05) * upright)
-		add("Head", { Shape = cylinder, Size = Vector3.new(1.4, 1.25, 1.25), Color = hat }, CFrame.new(0, 1.6, 0.05) * upright)
-		add("Head", { Shape = cylinder, Size = Vector3.new(0.3, 1.32, 1.32), Color = band }, CFrame.new(0, 1.05, 0.05) * upright)
-		add("Head", { Size = Vector3.new(0.5, 0.42, 0.1), Color = gold, Reflectance = 0.2 }, CFrame.new(0, 1.05, -0.62))
-		add("Head", { Size = Vector3.new(0.26, 0.2, 0.1), Color = band }, CFrame.new(0, 1.05, -0.65))
+		head({ Shape = cylinder, Size = Vector3.new(0.15, 2.3, 2.3), Color = hat }, CFrame.new(0, 0.82, 0.05) * upright)
+		head({ Shape = cylinder, Size = Vector3.new(1.4, 1.25, 1.25), Color = hat }, CFrame.new(0, 1.6, 0.05) * upright)
+		head({ Shape = cylinder, Size = Vector3.new(0.3, 1.32, 1.32), Color = band }, CFrame.new(0, 1.05, 0.05) * upright)
+		head({ Size = Vector3.new(0.5, 0.42, 0.1), Color = gold, Reflectance = 0.2 }, CFrame.new(0, 1.05, -0.62))
+		head({ Size = Vector3.new(0.26, 0.2, 0.1), Color = band }, CFrame.new(0, 1.05, -0.65))
 	elseif skin.Extra == "ChefHat" then
-		-- A puffy white toque, plus two rows of buttons down the chef's coat.
+		-- A puffy white toque, plus two rows of buttons down the front of the body.
 		local white = rgb(250, 250, 250)
-		add("Head", { Shape = cylinder, Size = Vector3.new(0.7, 1.5, 1.5), Color = white }, CFrame.new(0, 1.15, 0) * upright)
-		add("Head", { Shape = ball, Size = Vector3.new(1.9, 1.9, 1.9), Color = white }, CFrame.new(0, 2.05, 0))
+		head({ Shape = cylinder, Size = Vector3.new(0.7, 1.5, 1.5), Color = white }, CFrame.new(0, 1.15, 0) * upright)
+		head({ Shape = ball, Size = Vector3.new(1.9, 1.9, 1.9), Color = white }, CFrame.new(0, 2.05, 0))
 		for _, x in { -0.6, 0.6 } do
-			add("Head", { Shape = ball, Size = Vector3.new(1.3, 1.3, 1.3), Color = white }, CFrame.new(x, 1.85, 0))
+			head({ Shape = ball, Size = Vector3.new(1.3, 1.3, 1.3), Color = white }, CFrame.new(x, 1.85, 0))
 		end
-		for _, x in { -0.55, 0.55 } do
-			for _, y in { 0.6, -0.3 } do
-				-- On the front of the body ball (radius 2.1, centered at 0, -0.3, 0.2), poking out a little.
-				local z = 0.2 - math.sqrt(2.1 ^ 2 - x ^ 2 - y ^ 2) + 0.05
-				add("Torso", { Shape = ball, Size = Vector3.new(0.32, 0.32, 0.32), Color = rgb(40, 40, 45) }, CFrame.new(x, y - 0.3, z))
+		for _, x in { -0.6, 0.6 } do
+			for _, y in { 0.4, -0.5 } do
+				-- On the front of the body (an ellipsoid with half-sizes 2.2, 1.9, 2.8), poking out a little.
+				local z = -2.8 * math.sqrt(1 - (x / 2.2) ^ 2 - (y / 1.9) ^ 2) - 0.05
+				add("Body", { Shape = ball, Size = Vector3.new(0.4, 0.4, 0.4), Color = rgb(40, 40, 45) }, CFrame.new(x, y, z))
 			end
 		end
 	elseif skin.Extra == "Cream" then
 		-- A dollop of whipped cream with a cherry on top.
 		local cream = rgb(255, 250, 240)
-		add("Head", { Shape = ball, Size = Vector3.new(1.6, 1.6, 1.6), Color = cream }, CFrame.new(0, 0.95, 0))
-		add("Head", { Shape = ball, Size = Vector3.new(1.1, 1.1, 1.1), Color = cream }, CFrame.new(0, 1.55, 0))
-		add("Head", { Shape = ball, Size = Vector3.new(0.5, 0.5, 0.5), Color = rgb(210, 20, 40) }, CFrame.new(0, 2.15, 0))
+		head({ Shape = ball, Size = Vector3.new(1.6, 1.6, 1.6), Color = cream }, CFrame.new(0, 0.95, 0))
+		head({ Shape = ball, Size = Vector3.new(1.1, 1.1, 1.1), Color = cream }, CFrame.new(0, 1.55, 0))
+		head({ Shape = ball, Size = Vector3.new(0.5, 0.5, 0.5), Color = rgb(210, 20, 40) }, CFrame.new(0, 2.15, 0))
 	elseif skin.Extra == "Stem" then
 		-- A pumpkin stem with a curly leaf.
 		local green = rgb(90, 125, 40)
-		add("Head", { Shape = cylinder, Size = Vector3.new(1, 0.45, 0.45), Color = green }, CFrame.new(0.05, 1.3, 0) * CFrame.Angles(0, 0, math.rad(-12)) * upright)
-		add("Head", { Size = Vector3.new(1, 0.12, 0.6), Color = rgb(110, 170, 50) }, CFrame.new(0.55, 1.05, 0) * CFrame.Angles(0, 0, math.rad(-25)))
+		head({ Shape = cylinder, Size = Vector3.new(1, 0.45, 0.45), Color = green }, CFrame.new(0.05, 1.3, 0) * CFrame.Angles(0, 0, math.rad(-12)) * upright)
+		head({ Size = Vector3.new(1, 0.12, 0.6), Color = rgb(110, 170, 50) }, CFrame.new(0.55, 1.05, 0) * CFrame.Angles(0, 0, math.rad(-25)))
 	end
 	return list
 end

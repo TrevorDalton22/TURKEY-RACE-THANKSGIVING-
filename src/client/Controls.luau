@@ -127,6 +127,18 @@ local function update(dt: number)
 	humanoid.WalkSpeed = speed
 end
 
+-- The camera starts this far back, so a rider up on their turkey fits in view (players can still zoom).
+local START_ZOOM = 18
+
+-- Pulls the camera back to START_ZOOM: raising the minimum zoom pushes it out, and lowering the minimum
+-- again leaves it there.
+local function zoomOut()
+	player.CameraMinZoomDistance = START_ZOOM
+	task.delay(0.1, function()
+		player.CameraMinZoomDistance = 0.5
+	end)
+end
+
 -- Swings the camera behind the turkey, keeping the player's zoom, so pressing forward runs down the track
 -- whichever way the camera was facing in the lobby.
 local function faceForward()
@@ -135,7 +147,7 @@ local function faceForward()
 		return
 	end
 	local camera = workspace.CurrentCamera
-	local distance = math.clamp((camera.CFrame.Position - camera.Focus.Position).Magnitude, 8, 30)
+	local distance = math.clamp((camera.CFrame.Position - camera.Focus.Position).Magnitude, START_ZOOM, 35)
 	local look = root.CFrame.LookVector
 	camera.CFrame = CFrame.lookAt(root.Position - look * distance + Vector3.new(0, distance * 0.35, 0), root.Position)
 end
@@ -163,7 +175,11 @@ function Controls.start()
 	player.CharacterAdded:Connect(function()
 		Controls.Stamina = move.StaminaMax
 		stunnedUntil = 0
+		task.delay(0.5, zoomOut)
 	end)
+	if player.Character then
+		task.delay(0.5, zoomOut)
+	end
 end
 
 return Controls

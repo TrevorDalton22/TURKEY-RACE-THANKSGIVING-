@@ -8,7 +8,7 @@ local Config = {
 	CountdownSeconds = 3,
 	ResultsSeconds = 8,
 	RaceTimeLimitSeconds = 150,
-	Laps = 2, -- a map can override this with a Laps attribute
+	Laps = 3, -- a map can override this with a Laps attribute
 
 	-- The map changes every race; the mode changes after every map has been played,
 	-- so each map gets both modes.
@@ -23,55 +23,59 @@ local Config = {
 	FallHeight = 25,
 
 	-- Fastest average speed (studs a second) a turkey can cover the track between two checkpoints.
-	-- Dashing and sliding the whole way averages about 55, so only a cheater teleporting ahead goes
-	-- faster; they're sent back to the checkpoint they came from.
-	MaxPace = 90,
+	-- Galloping, sliding and dashing the whole way averages about 95, so only a cheater teleporting
+	-- ahead goes faster; they're sent back to the checkpoint they came from.
+	MaxPace = 150,
 
 	-- Seconds between gobbles (G key) per player.
 	GobbleCooldown = 1.5,
 
+	-- Everyone rides a turkey. Speeds are studs a second: trotting, galloping (sprint, uses stamina)
+	-- and the belly-slide burst.
 	Movement = {
-		WalkSpeed = 18,
-		SprintSpeed = 30,
-		SlideSpeed = 48,
+		RideHeight = 7.5, -- how high the rider sits: the middle of their body, above the ground
+		JumpHeight = 8,
+		WalkSpeed = 36,
+		SprintSpeed = 54,
+		SlideSpeed = 78,
 		SlideSeconds = 0.5,
 		SlideCooldown = 2.5,
 		StaminaMax = 100,
-		StaminaDrain = 30,
-		StaminaRegen = 18,
-		FlapVelocity = 32,
+		StaminaDrain = 25,
+		StaminaRegen = 22,
+		FlapVelocity = 34,
 		FlapsPerJump = 2,
 	},
 
 	Chef = {
-		StartsAtSeconds = 45, -- a map can override this with a ChefStartsAt attribute
-		Speed = 25,
+		StartsAtSeconds = 35, -- a map can override this with a ChefStartsAt attribute
+		Speed = 50,
 		-- Speeds up when the last turkey gets this far ahead.
-		CatchUpSpeed = 40,
-		CatchUpDistance = 150,
-		SpawnBehind = 120,
+		CatchUpSpeed = 80,
+		CatchUpDistance = 250,
+		SpawnBehind = 180,
 		HitRadius = 18,
 		HitCooldown = 3,
 		StunSeconds = 1.4,
 	},
 
 	PowerUps = {
-		DrumstickDash = { Name = "Drumstick Dash", Icon = "🍗", Multiplier = 1.6, Seconds = 3 },
-		PieLauncher = { Name = "Pie Launcher", Icon = "🥧", Speed = 90, Range = 160, SlowMultiplier = 0.5, SlowSeconds = 2.5 },
+		DrumstickDash = { Name = "Drumstick Dash", Icon = "🍗", Multiplier = 1.4, Seconds = 3 },
+		PieLauncher = { Name = "Pie Launcher", Icon = "🥧", Speed = 150, Range = 300, SlowMultiplier = 0.5, SlowSeconds = 2.5 },
 		ButterSlide = { Name = "Butter Slide", Icon = "🧈", Lifetime = 12, StunSeconds = 1 },
 		-- Knocks every turkey within Radius away from you.
-		GobbleBomb = { Name = "Gobble Bomb", Icon = "💥", Radius = 22, Push = 60, Lift = 35, StunSeconds = 1.2 },
+		GobbleBomb = { Name = "Gobble Bomb", Icon = "💥", Radius = 26, Push = 70, Lift = 35, StunSeconds = 1.2 },
 		-- Blocks the next hit of any kind (chef included), or runs out after Seconds.
 		MashedPotatoShield = { Name = "Potato Shield", Icon = "🥔", Seconds = 10 },
 		-- Rolls down the track ahead of you, steering toward turkeys and spinning them around.
-		CornTornado = { Name = "Corn Tornado", Icon = "🌪️", Speed = 55, Seconds = 4, HitRadius = 7, SpinSeconds = 1.5, SpinSpeed = 18 },
+		CornTornado = { Name = "Corn Tornado", Icon = "🌪️", Speed = 95, Seconds = 4, HitRadius = 8, SpinSeconds = 1.5, SpinSpeed = 18 },
 	},
 	ItemBoxRespawnSeconds = 4,
 
 	-- Map hazards.
 	Hazards = {
 		-- Pumpkins rolling down Pumpkin Hill (Pumpkin Patch Panic). Interval is the average gap between pumpkins.
-		Pumpkin = { Interval = 1.4, Speed = 30, Size = 9, Push = 45, Lift = 40, StunSeconds = 1.1 },
+		Pumpkin = { Interval = 1.2, Speed = 40, Size = 9, Push = 45, Lift = 40, StunSeconds = 1.1 },
 		-- Stove burners and the griddle (Escape the Oven): each is cool, then glows as a warning, then is hot
 		-- and throws any turkey standing on it. Burners start at different points in the cycle.
 		Burner = { CoolSeconds = 3, WarnSeconds = 1, HotSeconds = 2, Push = 25, Lift = 50, StunSeconds = 0.7 },

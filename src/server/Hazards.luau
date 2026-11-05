@@ -200,11 +200,11 @@ local function burnerState(b, now: number): string
 	return if t < burnerSettings.CoolSeconds + burnerSettings.WarnSeconds then "Warm" else "Hot"
 end
 
--- Standing on it, or close enough above it to feel the heat. Jumping clears it.
+-- Standing on it (the rider sits RideHeight up), or close enough above it to feel the heat. Jumping clears it.
 local function onBurner(b, position: Vector3): boolean
 	local rel = b.heat.CFrame:PointToObjectSpace(position)
 	local half = b.heat.Size / 2
-	if rel.Y < -half.Y - 1 or rel.Y > half.Y + 5 then
+	if rel.Y < -half.Y - 1 or rel.Y > half.Y + Config.Movement.RideHeight + 1.5 then
 		return false
 	end
 	if b.round then

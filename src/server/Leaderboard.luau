@@ -25,6 +25,8 @@ local function winsOf(player: Player): number
 	return if leaderstats then leaderstats.Wins.Value else 0
 end
 
+local lastRecordError: string? = nil
+
 -- Wins only go up, so keeping the larger value means a failed stats load can never lower a record.
 local function record(player: Player)
 	local wins = winsOf(player)
@@ -36,7 +38,9 @@ local function record(player: Player)
 	end)
 	if ok then
 		written[player] = wins
-	else
+	elseif tostring(err) ~= lastRecordError then
+		-- Once per new error: it's retried every few seconds.
+		lastRecordError = tostring(err)
 		warn("[TurkeyRace] Couldn't record wins for", player.Name, err)
 	end
 end
@@ -70,6 +74,9 @@ local function serverTop()
 	return entries
 end
 
+-- The last read error, so the same one isn't warned about every few seconds.
+local lastError: string? = nil
+
 -- Returns the top entries and whether they're global.
 local function fetchTop()
 	if store then
@@ -84,9 +91,13 @@ local function fetchTop()
 					table.insert(entries, { Name = nameOf(userId), Wins = entry.value })
 				end
 			end
+			lastError = nil
 			return entries, true
 		end
-		warn("[TurkeyRace] Couldn't read the Wins leaderboard:", page)
+		if tostring(page) ~= lastError then
+			lastError = tostring(page)
+			warn("[TurkeyRace] Couldn't read the Wins leaderboard:", page)
+		end
 	end
 	return serverTop(), false
 end
