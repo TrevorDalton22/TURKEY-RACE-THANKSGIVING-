@@ -60,9 +60,10 @@ end
 
 -- Builds a little turkey in a ViewportFrame and returns the camera that looks at it.
 local function buildPreview(card: Frame, skin): Camera
+	-- Tinted with the skin's rarity color, so rare skins stand out at a glance.
 	local viewport = Instance.new("ViewportFrame")
-	viewport.BackgroundColor3 = Color3.fromRGB(255, 225, 170)
-	viewport.BackgroundTransparency = 0.7
+	viewport.BackgroundColor3 = Skins.Rarities[skin.Rarity].Color
+	viewport.BackgroundTransparency = 0.55
 	viewport.Position = UDim2.new(0, 6, 0, 6)
 	viewport.Size = UDim2.new(1, -12, 0.58, -6)
 	Instance.new("UICorner").Parent = viewport
@@ -98,6 +99,13 @@ local function ownedSkins(): { [string]: boolean }
 	return set
 end
 
+-- Opens the shop on its Skins tab, scrolled to `skinId` if given (set once the shop is built).
+local openAt: (skinId: string?) -> () = function() end
+
+function Shop.open(skinId: string?)
+	openAt(skinId)
+end
+
 -- passApi: the Pass module, so a pass skin's button can open the pass.
 function Shop.start(passApi)
 	local gui = Instance.new("ScreenGui")
@@ -105,61 +113,38 @@ function Shop.start(passApi)
 	gui.ResetOnSpawn = false
 	gui.DisplayOrder = 5 -- over the HUD
 	gui.Parent = player:WaitForChild("PlayerGui")
+	Ui.autoScale(gui)
 
-	local openButton = Ui.button(gui, {
-		Name = "OpenButton",
-		AnchorPoint = Vector2.new(0, 0.5),
-		Position = UDim2.new(0, 12, 0.5, 0),
-		Size = UDim2.new(0, 120, 0, 46),
-		Text = "🛒 Shop",
+	local openButton = Ui.menuButton(gui, 1, "🛒", "SHOP", Ui.GREEN)
+	local window, body, openWindow = Ui.window(gui, "🛒 SHOP", Ui.GREEN, UDim2.fromScale(0.9, 0.84), Vector2.new(720, 540))
+
+	-- Feathers in the header; tabs along the top of the body.
+	local featherLabel = Ui.label(window.Header, {
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, -52, 0, 9),
+		Size = UDim2.new(0.4, 0, 1, -18),
+		TextXAlignment = Enum.TextXAlignment.Right,
+		TextColor3 = Ui.CREAM,
 	})
-
-	local window = Ui.panel(gui, {
-		Name = "Window",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromScale(0.9, 0.82),
-		BackgroundTransparency = 0.08,
-		Visible = false,
-	})
-	local limit = Instance.new("UISizeConstraint")
-	limit.MaxSize = Vector2.new(700, 520)
-	limit.Parent = window
-
-	-- Header: tabs, Feathers, close.
 	local tabs = {}
 	local function tabButton(name: string, text: string, x: number)
-		local b = Ui.button(window, {
+		local b = Ui.button(body, {
 			Name = name .. "Tab",
-			Position = UDim2.new(0, x, 0, 10),
-			Size = UDim2.new(0, 130, 0, 36),
+			Position = UDim2.new(0, x, 0, 0),
+			Size = UDim2.new(0, 140, 0, 40),
 			Text = text,
 		})
 		tabs[name] = b
 		return b
 	end
-	tabButton("Skins", "🦃 Skins", 12)
-	tabButton("Boosts", "⚡ Boosts", 150)
-	local featherLabel = Ui.label(window, {
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -62, 0, 14),
-		Size = UDim2.new(0.3, 0, 0, 28),
-		TextXAlignment = Enum.TextXAlignment.Right,
-	})
-	local closeButton = Ui.button(window, {
-		Name = "CloseButton",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -10, 0, 10),
-		Size = UDim2.new(0, 40, 0, 36),
-		BackgroundColor3 = Color3.fromRGB(200, 60, 50),
-		Text = "X",
-	})
+	tabButton("Skins", "🦃 Skins", 0)
+	tabButton("Boosts", "⚡ Boosts", 152)
 
-	local message = Ui.label(window, {
+	local message = Ui.label(body, {
 		Name = "Message",
 		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -8),
-		Size = UDim2.new(1, -24, 0, 28),
+		Position = UDim2.new(0.5, 0, 1, 0),
+		Size = UDim2.new(1, 0, 0, 26),
 		Text = "",
 	})
 	local function say(text: string, good: boolean)
@@ -174,14 +159,14 @@ function Shop.start(passApi)
 	cards.Name = "Cards"
 	cards.BackgroundTransparency = 1
 	cards.BorderSizePixel = 0
-	cards.Position = UDim2.new(0, 12, 0, 56)
-	cards.Size = UDim2.new(1, -24, 1, -98)
+	cards.Position = UDim2.new(0, 0, 0, 50)
+	cards.Size = UDim2.new(1, 0, 1, -82)
 	cards.CanvasSize = UDim2.new()
 	cards.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	cards.ScrollingDirection = Enum.ScrollingDirection.Y
 	cards.ScrollBarThickness = 6
 	cards.ScrollBarImageColor3 = Ui.ORANGE
-	cards.Parent = window
+	cards.Parent = body
 	local COLUMNS, GAP, CARD_ASPECT, MIN_HEIGHT = 4, 8, 0.8, 150 -- CARD_ASPECT is width / height
 	local rows = math.ceil(#Skins.List / COLUMNS)
 	local grid = Instance.new("UIGridLayout")
@@ -193,13 +178,15 @@ function Shop.start(passApi)
 	gridPadding.PaddingLeft = UDim.new(0, 3)
 	gridPadding.Parent = cards
 	local function fitCards()
+		local size = cards.AbsoluteSize / Ui.scaleOf(cards)
 		-- Leave room for the scroll bar so the last column isn't covered.
-		local width = math.max((cards.AbsoluteSize.X - cards.ScrollBarThickness - 3 - GAP * COLUMNS) / COLUMNS, 40)
+		local width = math.max((size.X - cards.ScrollBarThickness - 3 - GAP * COLUMNS) / COLUMNS, 40)
 		-- Shorten the cards so every row fits, down to a minimum; below that the grid scrolls.
-		local fitHeight = (cards.AbsoluteSize.Y - GAP * (rows - 1)) / rows
+		local fitHeight = (size.Y - GAP * (rows - 1)) / rows
 		grid.CellSize = UDim2.fromOffset(width, math.max(math.min(width / CARD_ASPECT, fitHeight), MIN_HEIGHT))
 	end
 	cards:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitCards)
+	gui.AutoScale:GetPropertyChangedSignal("Scale"):Connect(fitCards)
 	fitCards()
 
 	local entries = {}
@@ -251,7 +238,6 @@ function Shop.start(passApi)
 			end
 			return
 		elseif not owned and source == "Pass" then
-			window.Visible = false
 			passApi.open()
 			return
 		end
@@ -271,9 +257,10 @@ function Shop.start(passApi)
 			Name = skin.Id,
 			LayoutOrder = i,
 			BackgroundColor3 = CARD,
+			BackgroundTransparency = 0,
 		})
 		local stroke = Instance.new("UIStroke")
-		stroke.Thickness = 2
+		stroke.Thickness = 3
 		stroke.Color = Skins.Rarities[skin.Rarity].Color
 		stroke.Parent = card
 		local camera = buildPreview(card, skin)
@@ -306,10 +293,10 @@ function Shop.start(passApi)
 	local boosts = Instance.new("Frame")
 	boosts.Name = "Boosts"
 	boosts.BackgroundTransparency = 1
-	boosts.Position = UDim2.new(0, 12, 0, 56)
-	boosts.Size = UDim2.new(1, -24, 1, -98)
+	boosts.Position = UDim2.new(0, 0, 0, 50)
+	boosts.Size = UDim2.new(1, 0, 1, -82)
 	boosts.Visible = false
-	boosts.Parent = window
+	boosts.Parent = body
 	local list = Instance.new("UIListLayout")
 	list.Padding = UDim.new(0, 8)
 	list.SortOrder = Enum.SortOrder.LayoutOrder
@@ -326,9 +313,10 @@ function Shop.start(passApi)
 			LayoutOrder = order,
 			Size = UDim2.new(1, 0, 0, 96),
 			BackgroundColor3 = CARD,
+			BackgroundTransparency = 0,
 		})
 		local stroke = Instance.new("UIStroke")
-		stroke.Thickness = 2
+		stroke.Thickness = 3
 		stroke.Color = color
 		stroke.Parent = row
 		Ui.label(row, { Position = UDim2.new(0, 8, 0, 8), Size = UDim2.new(0, 80, 1, -16), Text = icon, TextStrokeTransparency = 1 })
@@ -416,7 +404,7 @@ function Shop.start(passApi)
 		cards.Visible = name == "Skins"
 		boosts.Visible = name == "Boosts"
 		for tabName, b in tabs do
-			b.BackgroundColor3 = if tabName == name then Ui.ORANGE else DIM_ORANGE
+			b.BackgroundColor3 = if tabName == name then Ui.ORANGE else Ui.PANEL
 		end
 		message.Text = ""
 		refreshSkins()
@@ -430,7 +418,7 @@ function Shop.start(passApi)
 	end)
 
 	local function setOpen(open: boolean)
-		window.Visible = open
+		openWindow(open)
 		if open then
 			showTab(current)
 		end
@@ -438,9 +426,22 @@ function Shop.start(passApi)
 	openButton.Activated:Connect(function()
 		setOpen(not window.Visible)
 	end)
-	closeButton.Activated:Connect(function()
-		setOpen(false)
-	end)
+	openAt = function(skinId: string?)
+		if player:GetAttribute("Racing") then
+			return
+		end
+		current = "Skins"
+		setOpen(true)
+		local entry = skinId and cards:FindFirstChild(skinId) :: Frame?
+		if entry then
+			-- Scroll so that skin's row is at the top, and make its card bounce.
+			task.defer(function()
+				local y = (entry.AbsolutePosition.Y - cards.AbsolutePosition.Y) / Ui.scaleOf(cards) + cards.CanvasPosition.Y
+				cards.CanvasPosition = Vector2.new(0, math.max(0, y - 4))
+				Ui.pop(entry, 0.7)
+			end)
+		end
+	end
 
 	-- The shop is a lobby thing: hide it while racing.
 	player:GetAttributeChangedSignal("Racing"):Connect(function()

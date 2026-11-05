@@ -5,6 +5,16 @@ local Format = {}
 -- The Feathers icon. (The feather emoji itself doesn't show in Roblox, so it's autumn leaves.)
 Format.FEATHER = "🍂"
 
+-- 1250 -> "1,250"
+function Format.number(n: number): string
+	local text = tostring(math.floor(n))
+	local sign, digits = string.match(text, "^(-?)(%d+)$")
+	if not digits then
+		return text
+	end
+	return sign .. string.reverse((string.gsub(string.reverse(digits), "(%d%d%d)", "%1,"))):gsub("^,", "")
+end
+
 -- 1 -> "1st", 2 -> "2nd", 11 -> "11th"
 function Format.ordinal(n: number): string
 	local suffix = if n % 100 >= 11 and n % 100 <= 13 then "th" else ({ "st", "nd", "rd" })[n % 10] or "th"

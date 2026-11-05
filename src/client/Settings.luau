@@ -3,7 +3,6 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
 
 local Audio = require(script.Parent.Audio)
 local Music = require(script.Parent.Music)
@@ -34,38 +33,10 @@ function Settings.start()
 	gui.ResetOnSpawn = false
 	gui.DisplayOrder = 5 -- over the HUD
 	gui.Parent = player:WaitForChild("PlayerGui")
+	Ui.autoScale(gui)
 
-	local openButton = Ui.button(gui, {
-		Name = "OpenButton",
-		AnchorPoint = Vector2.new(0, 0.5),
-		Position = UDim2.new(0, 12, 0.5, 112),
-		Size = UDim2.new(0, 120, 0, 46),
-		Text = "⚙️ Settings",
-	})
-
-	local window = Ui.panel(gui, {
-		Name = "Window",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.new(0, 400, 0, 290),
-		BackgroundTransparency = 0.08,
-		Visible = false,
-	})
-	Ui.label(window, {
-		Position = UDim2.new(0, 16, 0, 12),
-		Size = UDim2.new(1, -80, 0, 40),
-		Text = "⚙️ SETTINGS",
-		TextColor3 = Ui.ORANGE,
-		TextXAlignment = Enum.TextXAlignment.Left,
-	})
-	local closeButton = Ui.button(window, {
-		Name = "CloseButton",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -10, 0, 10),
-		Size = UDim2.new(0, 40, 0, 36),
-		BackgroundColor3 = Color3.fromRGB(200, 60, 50),
-		Text = "X",
-	})
+	local openButton = Ui.menuButton(gui, 3, "⚙️", "SETTINGS", Ui.BLUE)
+	local window, body, setOpen = Ui.window(gui, "⚙️ SETTINGS", Ui.BLUE, UDim2.fromOffset(420, 320), Vector2.new(420, 320))
 
 	-- One row per setting: its label on the left, an ON/OFF switch on the right.
 	local switches = {}
@@ -77,18 +48,22 @@ function Settings.start()
 		switch.BackgroundColor3 = if on then ON_COLOR else OFF_COLOR
 	end
 	for i, option in OPTIONS do
-		local y = 64 + (i - 1) * 56
-		Ui.label(window, {
-			Position = UDim2.new(0, 20, 0, y),
-			Size = UDim2.new(1, -150, 0, 40),
+		local row = Ui.panel(body, {
+			Position = UDim2.new(0, 0, 0, (i - 1) * 60),
+			Size = UDim2.new(1, 0, 0, 52),
+			BackgroundTransparency = 0,
+		})
+		Ui.label(row, {
+			Position = UDim2.new(0, 14, 0, 10),
+			Size = UDim2.new(1, -140, 1, -20),
 			Text = option.Label,
 			TextXAlignment = Enum.TextXAlignment.Left,
 		})
-		local switch = Ui.button(window, {
+		local switch = Ui.button(row, {
 			Name = option.Name .. "Switch",
-			AnchorPoint = Vector2.new(1, 0),
-			Position = UDim2.new(1, -20, 0, y),
-			Size = UDim2.new(0, 100, 0, 40),
+			AnchorPoint = Vector2.new(1, 0.5),
+			Position = UDim2.new(1, -8, 0.5, 0),
+			Size = UDim2.new(0, 100, 0, 38),
 		})
 		switches[option.Name] = switch
 		switch.Activated:Connect(function()
@@ -105,24 +80,30 @@ function Settings.start()
 	end
 
 	-- What's playing, with a skip button.
-	local nowPlaying = Ui.label(window, {
-		Position = UDim2.new(0, 20, 0, 184),
-		Size = UDim2.new(1, -150, 0, 30),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextColor3 = Color3.fromRGB(255, 225, 170),
+	local musicRow = Ui.panel(body, {
+		Position = UDim2.new(0, 0, 0, 120),
+		Size = UDim2.new(1, 0, 0, 52),
+		BackgroundTransparency = 0,
 	})
-	local skipButton = Ui.button(window, {
+	local nowPlaying = Ui.label(musicRow, {
+		Position = UDim2.new(0, 14, 0, 12),
+		Size = UDim2.new(1, -140, 1, -24),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextColor3 = Ui.CREAM,
+	})
+	local skipButton = Ui.button(musicRow, {
 		Name = "SkipButton",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -20, 0, 180),
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, -8, 0.5, 0),
 		Size = UDim2.new(0, 100, 0, 38),
 		Text = "⏭ Skip",
+		BackgroundColor3 = Ui.BLUE,
 	})
 	skipButton.Activated:Connect(Music.skip)
-	Ui.label(window, {
+	Ui.label(body, {
 		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -12),
-		Size = UDim2.new(1, -40, 0, 22),
+		Position = UDim2.new(0.5, 0, 1, 0),
+		Size = UDim2.new(1, 0, 0, 20),
 		Text = "Music courtesy of APM Music",
 		TextColor3 = Color3.fromRGB(200, 180, 160),
 		TextStrokeTransparency = 1,
@@ -131,39 +112,34 @@ function Settings.start()
 	-- The new track's name in the bottom-left corner for a few seconds (only while music is on).
 	local toast = Ui.label(gui, {
 		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.new(0, 12, 1, -34),
+		Position = UDim2.new(0, 14, 1, -38),
 		Size = UDim2.new(0, 420, 0, 24),
 		TextXAlignment = Enum.TextXAlignment.Left,
-		TextColor3 = Color3.fromRGB(255, 225, 170),
-		TextTransparency = 1,
-		TextStrokeTransparency = 1,
+		TextColor3 = Ui.CREAM,
+		Visible = false,
 	})
-	local toastTween: Tween?
+	local toastToken = 0
 	local function showTrack(name: string?)
 		nowPlaying.Text = if name then `♪ {name}` else ""
 		if not name or not isOn(OPTIONS[1]) then
 			return
 		end
-		if toastTween then
-			toastTween:Cancel()
-		end
+		toastToken += 1
+		local token = toastToken
 		toast.Text = `♪ Now playing: {name}`
-		toast.TextTransparency = 0
-		toast.TextStrokeTransparency = 0.4
-		toastTween = TweenService:Create(toast, TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0, false, 4), {
-			TextTransparency = 1,
-			TextStrokeTransparency = 1,
-		})
-		toastTween:Play()
+		toast.Visible = true
+		Ui.pop(toast, 0.7)
+		task.delay(5, function()
+			if token == toastToken then
+				toast.Visible = false
+			end
+		end)
 	end
 	Music.Changed:Connect(showTrack)
 	showTrack(Music.Current)
 
 	openButton.Activated:Connect(function()
-		window.Visible = not window.Visible
-	end)
-	closeButton.Activated:Connect(function()
-		window.Visible = false
+		setOpen(not window.Visible)
 	end)
 end
 

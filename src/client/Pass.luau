@@ -24,7 +24,7 @@ local GOLD = Color3.fromRGB(255, 205, 70)
 local GREY = Color3.fromRGB(110, 110, 110)
 local COLUMN_WIDTH, COLUMN_GAP = 104, 8
 
-local window: Frame?
+local setOpen: (boolean) -> () = function() end
 local refresh: () -> () = function() end
 local scrollToCurrent: () -> () = function() end
 
@@ -39,11 +39,9 @@ local function rewardColor(reward): Color3
 end
 
 function Pass.open()
-	if window then
-		window.Visible = true
-		refresh()
-		scrollToCurrent()
-	end
+	setOpen(true)
+	refresh()
+	scrollToCurrent()
 end
 
 function Pass.start()
@@ -52,71 +50,37 @@ function Pass.start()
 	gui.ResetOnSpawn = false
 	gui.DisplayOrder = 5 -- over the HUD
 	gui.Parent = player:WaitForChild("PlayerGui")
+	Ui.autoScale(gui)
 
-	local openButton = Ui.button(gui, {
-		Name = "OpenButton",
-		AnchorPoint = Vector2.new(0, 0.5),
-		Position = UDim2.new(0, 12, 0.5, 56),
-		Size = UDim2.new(0, 120, 0, 46),
-		BackgroundColor3 = Color3.fromRGB(150, 80, 200),
-		Text = "🎟️ Pass",
-	})
-
-	local win = Ui.panel(gui, {
-		Name = "Window",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromScale(0.9, 0.82),
-		BackgroundTransparency = 0.08,
-		Visible = false,
-	})
-	window = win
-	local limit = Instance.new("UISizeConstraint")
-	limit.MaxSize = Vector2.new(760, 460)
-	limit.Parent = win
-
-	Ui.label(win, {
-		Position = UDim2.new(0, 16, 0, 10),
-		Size = UDim2.new(0.6, -16, 0, 36),
-		Text = `🎟️ {string.upper(Season.Name)}`,
-		TextColor3 = Ui.ORANGE,
-		TextXAlignment = Enum.TextXAlignment.Left,
-	})
-	local closeButton = Ui.button(win, {
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -10, 0, 10),
-		Size = UDim2.new(0, 40, 0, 36),
-		BackgroundColor3 = Color3.fromRGB(200, 60, 50),
-		Text = "X",
-	})
+	local openButton = Ui.menuButton(gui, 2, "🎟️", "PASS", Ui.PURPLE)
+	local win, body, openWindow = Ui.window(gui, `🎟️ {string.upper(Season.Name)}`, Ui.PURPLE, UDim2.fromScale(0.9, 0.84), Vector2.new(780, 500))
+	setOpen = openWindow
 
 	-- Progress toward the next tier, and the premium button.
-	local tierLabel = Ui.label(win, {
-		Position = UDim2.new(0, 16, 0, 56),
+	local tierLabel = Ui.label(body, {
+		Position = UDim2.new(0, 0, 0, 2),
 		Size = UDim2.new(0, 130, 0, 30),
 		TextXAlignment = Enum.TextXAlignment.Left,
 	})
-	local bar = Ui.panel(win, {
-		Position = UDim2.new(0, 152, 0, 60),
-		Size = UDim2.new(1, -392, 0, 22),
-		BackgroundColor3 = Color3.fromRGB(35, 20, 12),
-		BackgroundTransparency = 0,
+	local bar = Ui.card(body, {
+		Position = UDim2.new(0, 136, 0, 5),
+		Size = UDim2.new(1, -370, 0, 24),
 	})
 	local fill = Ui.panel(bar, { Size = UDim2.fromScale(0, 1), BackgroundColor3 = Ui.ORANGE, BackgroundTransparency = 0 })
-	local xpLabel = Ui.label(bar, { Size = UDim2.fromScale(1, 1), ZIndex = 2 })
-	local premiumButton = Ui.button(win, {
+	local xpLabel = Ui.label(bar, { Position = UDim2.new(0, 0, 0, 3), Size = UDim2.new(1, 0, 1, -6), ZIndex = 2 })
+	local premiumButton = Ui.button(body, {
 		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -16, 0, 54),
-		Size = UDim2.new(0, 210, 0, 34),
+		Position = UDim2.new(1, 0, 0, 0),
+		Size = UDim2.new(0, 220, 0, 36),
 	})
 
 	-- Row labels on the left, then one column per tier.
-	local TRACK_TOP = 100
+	local TRACK_TOP = 46
 	local rowLabels = Instance.new("Frame")
 	rowLabels.BackgroundTransparency = 1
-	rowLabels.Position = UDim2.new(0, 12, 0, TRACK_TOP)
-	rowLabels.Size = UDim2.new(0, 88, 1, -TRACK_TOP - 46)
-	rowLabels.Parent = win
+	rowLabels.Position = UDim2.new(0, 0, 0, TRACK_TOP)
+	rowLabels.Size = UDim2.new(0, 88, 1, -TRACK_TOP - 34)
+	rowLabels.Parent = body
 	Ui.label(rowLabels, { Position = UDim2.new(0, 0, 0, 30), Size = UDim2.new(1, 0, 0.5, -17), Text = "FREE" })
 	Ui.label(rowLabels, { Position = UDim2.new(0, 0, 0.5, 17), Size = UDim2.new(1, 0, 0.5, -17), Text = "⭐\nPREMIUM", TextColor3 = GOLD })
 
@@ -124,14 +88,14 @@ function Pass.start()
 	track.Name = "Track"
 	track.BackgroundTransparency = 1
 	track.BorderSizePixel = 0
-	track.Position = UDim2.new(0, 106, 0, TRACK_TOP)
-	track.Size = UDim2.new(1, -118, 1, -TRACK_TOP - 34)
+	track.Position = UDim2.new(0, 94, 0, TRACK_TOP)
+	track.Size = UDim2.new(1, -94, 1, -TRACK_TOP - 30)
 	track.CanvasSize = UDim2.new()
 	track.AutomaticCanvasSize = Enum.AutomaticSize.X
 	track.ScrollingDirection = Enum.ScrollingDirection.X
 	track.ScrollBarThickness = 8
 	track.ScrollBarImageColor3 = Ui.ORANGE
-	track.Parent = win
+	track.Parent = body
 	local layout = Instance.new("UIListLayout")
 	layout.FillDirection = Enum.FillDirection.Horizontal
 	layout.Padding = UDim.new(0, COLUMN_GAP)
@@ -184,10 +148,10 @@ function Pass.start()
 		})
 	end
 
-	Ui.label(win, {
+	Ui.label(body, {
 		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -8),
-		Size = UDim2.new(1, -24, 0, 22),
+		Position = UDim2.new(0.5, 0, 1, 0),
+		Size = UDim2.new(1, 0, 0, 22),
 		Text = `Race to earn XP: +{Config.Progression.Xp.Play} for racing, +{Config.Progression.Xp.Finish} for finishing, up to +{Config.Progression.Xp.Places[1]} more for winning`,
 		TextColor3 = Color3.fromRGB(255, 225, 190),
 	})
@@ -247,7 +211,7 @@ function Pass.start()
 	scrollToCurrent = function()
 		local tier = Progress.tier(player:GetAttribute("SeasonXp") or 0)
 		task.defer(function()
-			local x = (tier - 1) * (COLUMN_WIDTH + COLUMN_GAP) - track.AbsoluteSize.X / 2 + COLUMN_WIDTH / 2
+			local x = (tier - 1) * (COLUMN_WIDTH + COLUMN_GAP) - track.AbsoluteSize.X / Ui.scaleOf(track) / 2 + COLUMN_WIDTH / 2
 			track.CanvasPosition = Vector2.new(math.max(0, x), 0)
 		end)
 	end
@@ -259,13 +223,10 @@ function Pass.start()
 	end)
 	openButton.Activated:Connect(function()
 		if win.Visible then
-			win.Visible = false
+			setOpen(false)
 		else
 			Pass.open()
 		end
-	end)
-	closeButton.Activated:Connect(function()
-		win.Visible = false
 	end)
 
 	Purchases.price("GamePass", premiumId, function(price)

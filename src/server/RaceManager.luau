@@ -29,7 +29,7 @@ local round = 0
 local laps = Config.Laps -- for the current map
 
 -- Player attributes that only mean something during a race.
-local RACE_ATTRIBUTES = { "Racing", "Lap", "Place", "Finished", "Cooked" }
+local RACE_ATTRIBUTES = { "Racing", "Lap", "Place", "Finished", "Cooked", "NextGate" }
 
 local function setPhase(phase: string, seconds: number?)
 	ReplicatedStorage:SetAttribute("Phase", phase)
@@ -124,6 +124,8 @@ local function updateRacer(player: Player, r)
 		else
 			r.nextGate += 1
 		end
+		-- Clients light up the arch the racer is heading for.
+		player:SetAttribute("NextGate", if r.finishTime then nil else r.nextGate)
 	end
 	r.progress = r.lap * length + s
 end
@@ -204,6 +206,7 @@ local function runRace(mode: string, joined: { Player }): (any, { Player })
 		player:SetAttribute("Place", i)
 		player:SetAttribute("Finished", false)
 		player:SetAttribute("Cooked", false)
+		player:SetAttribute("NextGate", 1)
 	end
 
 	local gate = StartGate.build()

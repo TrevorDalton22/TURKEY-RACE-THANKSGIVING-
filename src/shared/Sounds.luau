@@ -46,6 +46,9 @@ local Sounds: { [string]: Def } = {
 	Join = { Id = 9125540237, Volume = 0.5, Speed = 1.25 },
 	GateOpen = { Id = 9114158497, Volume = 0.8, Speed = 0.75, Range = 150 },
 
+	-- Riding through your next checkpoint arch (PSE chime, higher)
+	Checkpoint = { Id = 9125540237, Volume = 0.45, Speed = 1.6 },
+
 	-- Podium: a chime as 3rd and 2nd are shown, a drum roll, then a fanfare for the winner (APM)
 	Reveal = { Id = 9125540237, Volume = 0.7 },
 	DrumRoll = { Id = 1845231195, Volume = 0.6 },
