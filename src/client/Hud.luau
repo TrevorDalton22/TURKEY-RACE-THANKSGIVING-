@@ -42,6 +42,15 @@ function Hud.start(controls)
 
 	local banner = label(gui, { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.22), Size = UDim2.new(0, 640, 0, 52), TextTransparency = 1, TextStrokeTransparency = 1 })
 
+	-- Level and XP toward the next level, in the lobby; the XP boost timer whenever one is running.
+	local XP_BLUE = Color3.fromRGB(120, 200, 255)
+	local xpBar = panel(gui, { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -36), Size = UDim2.new(0, 340, 0, 30) })
+	local levelBadge = label(xpBar, { Position = UDim2.new(0, 6, 0, 0), Size = UDim2.new(0, 70, 1, 0), TextColor3 = ORANGE })
+	local xpTrack = panel(xpBar, { Position = UDim2.new(0, 80, 0, 6), Size = UDim2.new(1, -88, 1, -12), BackgroundColor3 = Color3.fromRGB(35, 20, 12), BackgroundTransparency = 0 })
+	local xpFill = panel(xpTrack, { Size = UDim2.fromScale(0, 1), BackgroundColor3 = XP_BLUE, BackgroundTransparency = 0 })
+	local xpText = label(xpTrack, { Size = UDim2.fromScale(1, 1), ZIndex = 2 })
+	local boostLabel = label(gui, { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -70), Size = UDim2.new(0, 300, 0, 24), TextColor3 = XP_BLUE, Visible = false })
+
 	if UserInputService.KeyboardEnabled then
 		label(gui, {
 			AnchorPoint = Vector2.new(0, 1),
@@ -86,7 +95,7 @@ function Hud.start(controls)
 			label(rows, {
 				Size = UDim2.new(1, 0, 0, 30),
 				TextXAlignment = Enum.TextXAlignment.Left,
-				Text = `{Format.ordinal(entry.Place)}   {entry.Name}   {detail}   +{entry.Feathers} 🪶`,
+				Text = `{Format.ordinal(entry.Place)}   {entry.Name}   {detail}   +{entry.Feathers} {Format.FEATHER}  +{entry.Xp or 0} XP`,
 				TextColor3 = if entry.Place == 1 then ORANGE else Color3.new(1, 1, 1),
 			})
 		end
@@ -136,6 +145,25 @@ function Hud.start(controls)
 		if def then
 			slotIcon.Text = def.Icon
 			slotName.Text = def.Name
+		end
+
+		-- Out of the way while the shop or pass window is open.
+		local windowOpen = false
+		for _, name in { "TurkeyShop", "TurkeyPass" } do
+			local window = gui.Parent:FindFirstChild(name) and gui.Parent[name]:FindFirstChild("Window")
+			windowOpen = windowOpen or (window ~= nil and window.Visible)
+		end
+		xpBar.Visible = not racing and not windowOpen
+		if xpBar.Visible then
+			local into, need = player:GetAttribute("LevelXp") or 0, player:GetAttribute("LevelXpNeeded") or 1
+			levelBadge.Text = `Lv {player:GetAttribute("Level") or 1}`
+			xpFill.Size = UDim2.fromScale(math.clamp(into / need, 0, 1), 1)
+			xpText.Text = `{into} / {need} XP`
+		end
+		local boostLeft = (player:GetAttribute("BoostUntil") or 0) - workspace:GetServerTimeNow()
+		boostLabel.Visible = boostLeft > 0 and not windowOpen
+		if boostLabel.Visible then
+			boostLabel.Text = `⚡ 2x XP  {Format.duration(boostLeft)}`
 		end
 	end)
 end

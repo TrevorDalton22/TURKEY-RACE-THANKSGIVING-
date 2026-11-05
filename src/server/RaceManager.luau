@@ -7,6 +7,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Track = require(script.Parent.Track)
 local Stats = require(script.Parent.Stats)
+local Progression = require(script.Parent.Progression)
 local Chef = require(script.Parent.Chef)
 local PowerUps = require(script.Parent.PowerUps)
 local Hazards = require(script.Parent.Hazards)
@@ -248,11 +249,13 @@ local function runRace(mode: string)
 	PowerUps.stop()
 
 	local results = {}
+	local xpRules = Config.Progression.Xp
 	for place, entry in standings() do
 		local player, r = entry.player, entry.r
-		local feathers = Config.Rewards.Play
+		local feathers, xp = Config.Rewards.Play, xpRules.Play
 		if r.finishTime then
 			feathers += Config.Rewards.Finish + (Config.Rewards.Places[place] or 0)
+			xp += xpRules.Finish + (xpRules.Places[place] or 0)
 		end
 		Stats.add(player, feathers, if place == 1 and r.finishTime then 1 else 0)
 		table.insert(results, {
@@ -261,6 +264,7 @@ local function runRace(mode: string)
 			Time = r.finishTime,
 			Status = if r.finishTime then "Finished" elseif r.cooked then "Cooked" else "DNF",
 			Feathers = feathers,
+			Xp = Progression.award(player, xp),
 		})
 	end
 	Remotes.Results:FireAllClients(results)

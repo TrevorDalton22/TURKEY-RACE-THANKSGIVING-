@@ -9,13 +9,28 @@ end
 
 Skins.Default = "Classic"
 
--- In shop order. Anything a skin leaves out comes from Classic.
+-- Rarity tiers, in order, with the color the shop shows them in.
+Skins.Rarities = {
+	Common = { Order = 1, Color = rgb(190, 190, 190) },
+	Rare = { Order = 2, Color = rgb(70, 150, 255) },
+	Epic = { Order = 3, Color = rgb(180, 90, 255) },
+	Legendary = { Order = 4, Color = rgb(255, 175, 30) },
+	Mythic = { Order = 5, Color = rgb(255, 70, 130) },
+}
+
+-- In shop order. How a skin is unlocked:
+--   Price = n      bought with n Feathers
+--   Robux = true   a game pass (its id goes in Config.Robux.Skins)
+--   Pass = true    a Harvest Pass reward (shared/Season says which tier)
+-- Looks: anything a skin leaves out comes from Classic.
+--   Tail: 3 colors (center feather first, mirrored) or 5 (left to right)
 --   Transparency: see-through suit and legs (0..1)   Shine: reflectance of the body, head and wings
 --   Sparkle: glitter drifting off the body in this color   Extra: a hat or other add-on, built in Skins.pieces
 Skins.List = {
 	{
 		Id = "Classic",
 		Name = "Classic Turkey",
+		Rarity = "Common",
 		Price = 0,
 		Body = rgb(120, 72, 40),
 		Head = rgb(170, 120, 90),
@@ -29,6 +44,7 @@ Skins.List = {
 	{
 		Id = "Cool",
 		Name = "Cool Turkey",
+		Rarity = "Common",
 		Price = 100,
 		Body = rgb(55, 105, 185),
 		Head = rgb(150, 200, 240),
@@ -38,6 +54,7 @@ Skins.List = {
 	{
 		Id = "Pilgrim",
 		Name = "Pilgrim Turkey",
+		Rarity = "Common",
 		Price = 150,
 		Body = rgb(55, 50, 50),
 		Tail = { rgb(95, 65, 45), rgb(150, 100, 60), rgb(205, 165, 110) },
@@ -46,6 +63,7 @@ Skins.List = {
 	{
 		Id = "Lava",
 		Name = "Lava Turkey",
+		Rarity = "Rare",
 		Price = 250,
 		Body = rgb(50, 30, 28),
 		BodyMaterial = Enum.Material.CrackedLava,
@@ -56,6 +74,7 @@ Skins.List = {
 	{
 		Id = "Ghost",
 		Name = "Ghost Turkey",
+		Rarity = "Rare",
 		Price = 350,
 		Body = rgb(225, 232, 255),
 		Head = rgb(235, 240, 255),
@@ -69,6 +88,7 @@ Skins.List = {
 	{
 		Id = "King",
 		Name = "King Turkey",
+		Rarity = "Epic",
 		Price = 500,
 		Body = rgb(95, 45, 140),
 		Head = rgb(190, 150, 120),
@@ -79,6 +99,7 @@ Skins.List = {
 		-- Dressed up as the villain who's chasing everyone.
 		Id = "Chef",
 		Name = "Chef Turkey",
+		Rarity = "Epic",
 		Price = 750,
 		Body = rgb(245, 245, 245),
 		Extra = "ChefHat",
@@ -86,6 +107,7 @@ Skins.List = {
 	{
 		Id = "Golden",
 		Name = "Golden Turkey",
+		Rarity = "Legendary",
 		Price = 1000,
 		Body = rgb(255, 190, 40),
 		Head = rgb(255, 210, 80),
@@ -96,13 +118,116 @@ Skins.List = {
 		Shine = 0.25,
 		Sparkle = rgb(255, 230, 120),
 	},
+
+	-- Robux skins ------------------------------------------------------------------------------------
+	{
+		Id = "Rainbow",
+		Name = "Rainbow Turkey",
+		Rarity = "Legendary",
+		Robux = true,
+		Body = rgb(250, 250, 255),
+		Head = rgb(255, 225, 240),
+		Tail = { rgb(255, 60, 60), rgb(255, 160, 40), rgb(255, 230, 60), rgb(70, 210, 90), rgb(70, 140, 255) },
+		TailMaterial = Enum.Material.Neon,
+		Sparkle = rgb(255, 255, 255),
+		Extra = "Shades",
+	},
+	{
+		Id = "Galaxy",
+		Name = "Galaxy Turkey",
+		Rarity = "Mythic",
+		Robux = true,
+		Body = rgb(45, 25, 100),
+		Head = rgb(80, 45, 150),
+		Legs = rgb(120, 80, 220),
+		Beak = rgb(255, 200, 255),
+		Wattle = rgb(255, 90, 200),
+		Tail = { rgb(150, 60, 255), rgb(255, 80, 220), rgb(80, 200, 255), rgb(255, 80, 220), rgb(150, 60, 255) },
+		TailMaterial = Enum.Material.Neon,
+		Shine = 0.1,
+		Sparkle = rgb(220, 230, 255),
+	},
+	{
+		Id = "Diamond",
+		Name = "Diamond Turkey",
+		Rarity = "Mythic",
+		Robux = true,
+		Body = rgb(170, 235, 255),
+		BodyMaterial = Enum.Material.Glass,
+		Head = rgb(205, 245, 255),
+		Legs = rgb(150, 220, 245),
+		Beak = rgb(120, 200, 255),
+		Wattle = rgb(90, 170, 255),
+		Tail = { rgb(110, 210, 255), rgb(170, 235, 255), rgb(235, 252, 255) },
+		TailMaterial = Enum.Material.Neon,
+		Shine = 0.35,
+		Sparkle = rgb(230, 250, 255),
+		Extra = "Crown",
+	},
+
+	-- Harvest Pass skins -----------------------------------------------------------------------------
+	{
+		Id = "Cranberry",
+		Name = "Cranberry Turkey",
+		Rarity = "Rare",
+		Pass = true,
+		Body = rgb(165, 20, 50),
+		Head = rgb(225, 125, 135),
+		Tail = { rgb(120, 10, 35), rgb(200, 30, 60), rgb(245, 95, 115) },
+	},
+	{
+		Id = "Harvest",
+		Name = "Harvest Turkey",
+		Rarity = "Rare",
+		Pass = true,
+		Body = rgb(205, 110, 40),
+		Head = rgb(230, 175, 115),
+		Tail = { rgb(200, 45, 30), rgb(240, 140, 30), rgb(250, 210, 60), rgb(240, 140, 30), rgb(200, 45, 30) },
+		Extra = "PilgrimHat",
+	},
+	{
+		Id = "Pie",
+		Name = "Pumpkin Pie Turkey",
+		Rarity = "Epic",
+		Pass = true,
+		Body = rgb(225, 150, 70),
+		Head = rgb(245, 205, 145),
+		Tail = { rgb(205, 125, 55), rgb(235, 170, 90), rgb(250, 225, 175) },
+		Extra = "Cream",
+	},
+	{
+		Id = "Pumpkin",
+		Name = "Pumpkin Turkey",
+		Rarity = "Epic",
+		Pass = true,
+		Body = rgb(255, 135, 25),
+		Head = rgb(255, 170, 60),
+		Tail = { rgb(75, 135, 40), rgb(110, 170, 50), rgb(160, 205, 75) },
+		Extra = "Stem",
+	},
+	{
+		Id = "Feast",
+		Name = "Feast King Turkey",
+		Rarity = "Legendary",
+		Pass = true,
+		Body = rgb(205, 120, 45),
+		Head = rgb(235, 175, 115),
+		Tail = { rgb(230, 150, 20), rgb(255, 200, 40), rgb(255, 240, 140) },
+		TailMaterial = Enum.Material.Neon,
+		Shine = 0.1,
+		Sparkle = rgb(255, 215, 110),
+		Extra = "Crown",
+	},
 }
+
+-- What a skin can borrow from Classic. Not the price, rarity or how it's unlocked.
+local LOOKS = { "Body", "Head", "Legs", "Beak", "Wattle", "Tail", "Transparency", "Shine" }
 
 Skins.byId = {}
 for _, skin in Skins.List do
-	for key, value in Skins.List[1] do
+	for _, key in LOOKS do
 		if skin[key] == nil then
-			skin[key] = value
+			skin[key] = Skins.List[1][key]
 		end
 	end
 	Skins.byId[skin.Id] = skin
@@ -111,6 +236,11 @@ end
 -- Unknown or missing ids fall back to the default skin.
 function Skins.get(id: string?)
 	return Skins.byId[id] or Skins.byId[Skins.Default]
+end
+
+-- How a skin is unlocked: "Feathers", "Robux" or "Pass".
+function Skins.source(skin): string
+	return if skin.Robux then "Robux" elseif skin.Pass then "Pass" else "Feathers"
 end
 
 -- Sparkle: set on the body piece when its skin glitters; the suit adds the particles.
@@ -142,7 +272,8 @@ function Skins.pieces(id: string?): { Piece }
 	body.Sparkle = skin.Sparkle
 	for i = -2, 2 do
 		local feather = CFrame.new(0, 0.6, 1.9) * CFrame.Angles(0, 0, math.rad(i * 25)) * CFrame.new(0, 1.6, 0)
-		add("Torso", turkey({ Size = Vector3.new(1.2, 3.6, 0.3), Color = skin.Tail[math.abs(i) + 1], Material = skin.TailMaterial }), feather)
+		local color = if #skin.Tail >= 5 then skin.Tail[i + 3] else skin.Tail[math.abs(i) + 1]
+		add("Torso", turkey({ Size = Vector3.new(1.2, 3.6, 0.3), Color = color, Material = skin.TailMaterial }), feather)
 	end
 
 	-- Wings ride on the upper arms, so the normal arm animations flap them.
@@ -189,6 +320,17 @@ function Skins.pieces(id: string?): { Piece }
 				add("Torso", { Shape = ball, Size = Vector3.new(0.32, 0.32, 0.32), Color = rgb(40, 40, 45) }, CFrame.new(x, y - 0.3, z))
 			end
 		end
+	elseif skin.Extra == "Cream" then
+		-- A dollop of whipped cream with a cherry on top.
+		local cream = rgb(255, 250, 240)
+		add("Head", { Shape = ball, Size = Vector3.new(1.6, 1.6, 1.6), Color = cream }, CFrame.new(0, 0.95, 0))
+		add("Head", { Shape = ball, Size = Vector3.new(1.1, 1.1, 1.1), Color = cream }, CFrame.new(0, 1.55, 0))
+		add("Head", { Shape = ball, Size = Vector3.new(0.5, 0.5, 0.5), Color = rgb(210, 20, 40) }, CFrame.new(0, 2.15, 0))
+	elseif skin.Extra == "Stem" then
+		-- A pumpkin stem with a curly leaf.
+		local green = rgb(90, 125, 40)
+		add("Head", { Shape = cylinder, Size = Vector3.new(1, 0.45, 0.45), Color = green }, CFrame.new(0.05, 1.3, 0) * CFrame.Angles(0, 0, math.rad(-12)) * upright)
+		add("Head", { Size = Vector3.new(1, 0.12, 0.6), Color = rgb(110, 170, 50) }, CFrame.new(0.55, 1.05, 0) * CFrame.Angles(0, 0, math.rad(-25)))
 	end
 	return list
 end

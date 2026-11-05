@@ -3,6 +3,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Format = require(ReplicatedStorage.Shared.Format)
 local Skins = require(ReplicatedStorage.Shared.Skins)
 local Stats = require(script.Parent.Stats)
 
@@ -24,9 +25,15 @@ local function handle(player: Player, action: unknown, skinId: unknown): (boolea
 		if Stats.owns(player, skinId) then
 			return false, "You already own that skin"
 		end
+		local source = Skins.source(skin)
+		if source == "Robux" then
+			return false, "That skin is bought with Robux"
+		elseif source == "Pass" then
+			return false, "That skin is a Harvest Pass reward"
+		end
 		local missing = skin.Price - Stats.feathers(player)
 		if missing > 0 then
-			return false, `You need {missing} more 🪶`
+			return false, `You need {missing} more {Format.FEATHER}`
 		end
 		Stats.buySkin(player, skinId, skin.Price)
 		Stats.equip(player, skinId)

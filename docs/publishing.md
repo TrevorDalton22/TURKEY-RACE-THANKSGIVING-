@@ -35,7 +35,39 @@ Thanksgiving is **Thursday, November 26, 2026**. Publish privately first, test w
 - **Maturity & Compliance questionnaire:** required before going public. Answer it honestly. The frying-pan bonk and getting "cooked" are cartoon slapstick with no blood.
 - When everything above checks out: **Permissions → Public.**
 
-## 5. After publishing
+## 5. Robux items
+
+The shop and Harvest Pass are already built. Each Robux item just needs to be created on the Creator Hub, with its id pasted into `Config.Robux` in [src/shared/Config.luau](../src/shared/Config.luau). Until then the item shows as **Coming soon**.
+
+On create.roblox.com, open your experience and go to **Monetization**.
+
+**Passes** (bought once, owned forever). For each one, click **Create a Pass**, add an image, name and description, then turn on **Item for Sale** and set the price:
+
+| Pass | Goes in | Suggested price |
+|---|---|---|
+| Harvest Pass Premium | `PremiumPass` | 199 |
+| Rainbow Turkey | `Skins.Rainbow` | 149 |
+| Galaxy Turkey | `Skins.Galaxy` | 249 |
+| Diamond Turkey | `Skins.Diamond` | 299 |
+
+**Developer Products** (can be bought again and again). Create each one with a name, description, icon and price:
+
+| Product | Goes in | Suggested price |
+|---|---|---|
+| 2x XP for 30 minutes | `XpBoosts[1].Id` | 29 |
+| 2x XP for 2 hours | `XpBoosts[2].Id` | 79 |
+
+Then:
+
+1. Copy each id from the item's page, using **Copy Asset ID** or the number in the address bar, and paste it into Config.
+2. Commit, then **File → Publish to Roblox** so the live game has the ids.
+3. Test in Studio: buying shows a **test purchase** dialog and you aren't charged. Check that the skin unlocks, premium pays out the rewards you've already reached, and the boost timer appears.
+
+For pass images, a screenshot of the skin's card in the shop works well.
+
+The prices are suggestions; change them on the Creator Hub any time and the shop shows the new price automatically. To change what the pass gives, edit [src/shared/Season.luau](../src/shared/Season.luau). Changing its `Id` starts a new season, which resets everyone's pass progress; levels and skins are kept. A new season also needs a new Premium pass id, or last season's buyers get the new premium track free.
+
+## 6. After publishing
 
 - Push updates live with **File → Publish to Roblox** (Alt+P).
 - Keep `TurkeyRace.rbxl` current with **File → Save to File** before committing map changes.
@@ -61,7 +93,11 @@ Drumstick Dash • Pie Launcher • Butter Slide • Gobble Bomb • Potato Shie
 🔥 2 MODES
 Race to the finish, or Elimination where the last turkey gets COOKED!
 
-🪶 Earn Feathers, unlock 8 turkey skins, and climb the global Wins board!
+🍂 Earn Feathers and XP, level up, and unlock 16 turkey skins, from Common to Mythic!
+
+🎟️ HARVEST PASS: 30 tiers of rewards, with exclusive skins on the free and premium tracks
+
+🏆 Climb the global Wins board!
 
 🎮 CONTROLS
 Shift: sprint • Space: jump (again to flap) • Q: belly slide • E: use power-up • G: gobble

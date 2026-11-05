@@ -84,6 +84,29 @@ local Config = {
 		Places = { 25, 15, 10 },
 	},
 
+	-- XP, awarded at the end of a race alongside Feathers. It raises your level (which never resets)
+	-- and your Harvest Pass tier (shared/Season).
+	Progression = {
+		Xp = { Play = 25, Finish = 25, Places = { 50, 30, 20 } },
+		-- XP to go from level L to L + 1 is LevelBase + LevelStep * (L - 1).
+		LevelBase = 100,
+		LevelStep = 25,
+		BoostMultiplier = 2, -- while an XP boost is running
+	},
+
+	-- Robux items. Create each one in the Creator Dashboard after publishing (docs/publishing.md has the
+	-- steps and suggested prices), then paste its id here. Anything left at 0 shows as "Coming soon".
+	Robux = {
+		-- Game passes: bought once, owned forever.
+		PremiumPass = 0, -- the premium track of the Harvest Pass
+		Skins = { Rainbow = 0, Galaxy = 0, Diamond = 0 }, -- skins marked Robux in shared/Skins
+		-- Developer products: can be bought again and again. Each one adds Minutes of 2x XP.
+		XpBoosts = {
+			{ Id = 0, Minutes = 30 },
+			{ Id = 0, Minutes = 120 },
+		},
+	},
+
 	-- The Wins board in the lobby.
 	Leaderboard = {
 		Size = 10,
