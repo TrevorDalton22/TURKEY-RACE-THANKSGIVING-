@@ -17,7 +17,7 @@ local Remotes = ReplicatedStorage.Remotes
 local RaceManager = {}
 
 -- Racer state for the current race, keyed by Player.
--- { lap, nextGate, progress, finishTime?, cooked, cookedAt? }
+-- { lap, nextGate, gateAt (when they passed the last gate), progress, finishTime?, cooked, cookedAt? }
 local racers = {}
 local raceStart = 0
 local round = 0
@@ -98,6 +98,12 @@ local function updateRacer(player: Player, r)
 
 	local gate = Track.Gates[r.nextGate]
 	if s >= gate and s < gate + 60 then
+		local now = os.clock()
+		if (gate - base) / math.max(now - r.gateAt, 0.01) > Config.MaxPace then
+			placeOnPath(player, base)
+			return
+		end
+		r.gateAt = now
 		if r.nextGate == #Track.Gates then
 			r.lap += 1
 			r.nextGate = 1
@@ -192,14 +198,15 @@ local function runRace(mode: string)
 
 	setPhase("Countdown", Config.CountdownSeconds)
 	task.wait(Config.CountdownSeconds)
-	for player in racers do
+	raceStart = os.clock()
+	for player, r in racers do
+		r.gateAt = raceStart
 		local root = rootOf(player)
 		if root then
 			root.Anchored = false
 		end
 	end
 
-	raceStart = os.clock()
 	setPhase("Racing", Config.RaceTimeLimitSeconds)
 	notify(if mode == "Elimination" then "GO! Last turkey gets COOKED!" else "GO! GO! GOBBLE!")
 	PowerUps.begin(racers)

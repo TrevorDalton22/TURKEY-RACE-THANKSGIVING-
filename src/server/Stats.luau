@@ -21,6 +21,23 @@ end
 local loaded = {}
 -- Owned skin ids per player, as a set.
 local owned: { [Player]: { [string]: boolean } } = {}
+-- Saves in flight, so a server shutting down can wait for them.
+local saving = 0
+
+local TRIES = 3
+
+-- Calls a DataStore method, trying again after a short wait if Roblox's servers hiccup.
+local function attempt(method, ...): (boolean, any)
+	local ok, result
+	for try = 1, TRIES do
+		ok, result = pcall(method, store, ...)
+		if ok or try == TRIES then
+			break
+		end
+		task.wait(try * 2)
+	end
+	return ok, result
+end
 
 local function publishSkins(player: Player)
 	local ids = {}
@@ -47,7 +64,9 @@ local function save(player: Player)
 		Skins = skins,
 		Equipped = player:GetAttribute("Skin"),
 	}
-	local success, saveErr = pcall(store.SetAsync, store, tostring(player.UserId), data)
+	saving += 1
+	local success, saveErr = attempt(store.SetAsync, tostring(player.UserId), data)
+	saving -= 1
 	if not success then
 		warn("[TurkeyRace] Couldn't save stats for", player.Name, saveErr)
 	end
@@ -71,18 +90,20 @@ local function load(player: Player)
 	if not store then
 		return
 	end
-	local success, data = pcall(store.GetAsync, store, tostring(player.UserId))
+	local success, data = attempt(store.GetAsync, tostring(player.UserId))
 	if player.Parent == nil then
 		return
 	end
 	if not success then
 		warn("[TurkeyRace] Couldn't load stats for", player.Name, data)
+		ReplicatedStorage.Remotes.Notify:FireClient(player, "⚠️ Couldn't load your feathers, so this visit won't be saved. Rejoin to try again!")
 		return
 	end
 	loaded[player] = true
 	if data then
-		feathers.Value = data.Feathers or 0
-		wins.Value = data.Wins or 0
+		-- Added rather than set, so anything earned while the load was in flight is kept.
+		feathers.Value += data.Feathers or 0
+		wins.Value += data.Wins or 0
 		for _, id in data.Skins or {} do
 			if Skins.byId[id] then
 				owned[player][id] = true
@@ -140,9 +161,13 @@ function Stats.start()
 		loaded[player] = nil
 		owned[player] = nil
 	end)
+	-- Roblox gives a closing server up to 30 seconds; save everyone at once and wait for every save to land.
 	game:BindToClose(function()
 		for _, player in Players:GetPlayers() do
-			save(player)
+			task.spawn(save, player)
+		end
+		while saving > 0 do
+			task.wait(0.1)
 		end
 	end)
 end

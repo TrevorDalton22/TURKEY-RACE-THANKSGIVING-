@@ -22,6 +22,11 @@ local Config = {
 	-- Racers below this height fell off the table and respawn at their last checkpoint.
 	FallHeight = 25,
 
+	-- Fastest average speed (studs a second) a turkey can cover the track between two checkpoints.
+	-- Dashing and sliding the whole way averages about 55, so only a cheater teleporting ahead goes
+	-- faster; they're sent back to the checkpoint they came from.
+	MaxPace = 90,
+
 	-- Seconds between gobbles (G key) per player.
 	GobbleCooldown = 1.5,
 
