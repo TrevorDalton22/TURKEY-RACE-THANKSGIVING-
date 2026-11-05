@@ -29,6 +29,7 @@ local function add(props, offset: CFrame, onArm: boolean?)
 	p.CanTouch = false
 	p.TopSurface = Enum.SurfaceType.Smooth
 	p.BottomSurface = Enum.SurfaceType.Smooth
+	p.Material = Enum.Material.SmoothPlastic
 	for k, v in props do
 		p[k] = v
 	end
@@ -66,7 +67,7 @@ local function build()
 	-- Arm and frying pan, posed around the shoulder. The arm hangs along -Y before rotation.
 	add({ Size = Vector3.new(3.5, 12, 3.5), Color = white }, CFrame.new(0, -6, 0), true)
 	add({ Size = Vector3.new(1.2, 5, 1.2), Color = black }, CFrame.new(0, -13, 0), true)
-	add({ Shape = cylinder, Size = Vector3.new(1, 12, 12), Color = black, Material = Enum.Material.Metal }, CFrame.new(0, -19, 0) * CFrame.Angles(0, math.rad(90), 0), true)
+	add({ Shape = cylinder, Size = Vector3.new(1, 12, 12), Color = black, Reflectance = 0.15 }, CFrame.new(0, -19, 0) * CFrame.Angles(0, math.rad(90), 0), true)
 
 	model.Parent = workspace
 end

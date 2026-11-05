@@ -31,6 +31,7 @@ local function previewPart(parent: Instance, props, cframe: CFrame)
 	p.Anchored = true
 	p.TopSurface = Enum.SurfaceType.Smooth
 	p.BottomSurface = Enum.SurfaceType.Smooth
+	p.Material = Enum.Material.SmoothPlastic -- matches the suit the server builds
 	for k, v in props do
 		p[k] = v
 	end

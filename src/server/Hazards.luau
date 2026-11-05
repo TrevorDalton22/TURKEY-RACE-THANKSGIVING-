@@ -46,6 +46,7 @@ local function effectPart(props, parent: Instance): Part
 	p.CanTouch = false
 	p.TopSurface = Enum.SurfaceType.Smooth
 	p.BottomSurface = Enum.SurfaceType.Smooth
+	p.Material = Enum.Material.SmoothPlastic
 	for k, v in props do
 		p[k] = v
 	end

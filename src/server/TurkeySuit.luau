@@ -43,6 +43,7 @@ local function attach(host: BasePart, props, offset: CFrame): BasePart
 	p.CanTouch = false
 	p.TopSurface = Enum.SurfaceType.Smooth
 	p.BottomSurface = Enum.SurfaceType.Smooth
+	p.Material = Enum.Material.SmoothPlastic -- unless the piece says otherwise
 	for k, v in props do
 		p[k] = v
 	end
