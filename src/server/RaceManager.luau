@@ -206,6 +206,7 @@ local function runRace(mode: string)
 	Hazards.begin(racers)
 
 	local nextCook = raceStart + Config.Elimination.StartSeconds
+	local chefAt = Track.Current.ChefStartsAt or Config.Chef.StartsAtSeconds
 	local chefOut = false
 	while true do
 		task.wait(0.1)
@@ -225,7 +226,7 @@ local function runRace(mode: string)
 		if active == 0 or elapsed >= Config.RaceTimeLimitSeconds then
 			break
 		end
-		if not chefOut and elapsed >= Config.Chef.StartsAtSeconds then
+		if not chefOut and elapsed >= chefAt then
 			chefOut = true
 			Chef.begin(racers)
 		end

@@ -33,6 +33,7 @@ local Sounds: { [string]: Def } = {
 
 	-- Map hazards
 	PumpkinHit = { Id = 3765689841, Volume = 0.9, Speed = 0.6, Range = 200 }, -- the bonk, lower and duller
+	Sizzle = { Id = 9119165650, Volume = 0.8, Range = 150 }, -- PSE, a hot burner
 
 	-- Shop
 	Purchase = { Id = 120891770644830, Volume = 0.6 },

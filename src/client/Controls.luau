@@ -127,7 +127,27 @@ local function update(dt: number)
 	humanoid.WalkSpeed = speed
 end
 
+-- Swings the camera behind the turkey, keeping the player's zoom, so pressing forward runs down the track
+-- whichever way the camera was facing in the lobby.
+local function faceForward()
+	local _, root = humanoidAndRoot()
+	if not root then
+		return
+	end
+	local camera = workspace.CurrentCamera
+	local distance = math.clamp((camera.CFrame.Position - camera.Focus.Position).Magnitude, 8, 30)
+	local look = root.CFrame.LookVector
+	camera.CFrame = CFrame.lookAt(root.Position - look * distance + Vector3.new(0, distance * 0.35, 0), root.Position)
+end
+
 function Controls.start()
+	-- Racers are placed on their start pads just before the countdown; give that a moment to arrive.
+	ReplicatedStorage:GetAttributeChangedSignal("Phase"):Connect(function()
+		if ReplicatedStorage:GetAttribute("Phase") == "Countdown" and player:GetAttribute("Racing") then
+			task.delay(0.3, faceForward)
+		end
+	end)
+
 	ContextActionService:BindAction("TurkeySprint", onSprint, true, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL3)
 	ContextActionService:BindAction("TurkeySlide", onSlide, true, Enum.KeyCode.Q, Enum.KeyCode.ButtonB)
 	ContextActionService:BindAction("TurkeyUse", onUse, true, Enum.KeyCode.E, Enum.KeyCode.ButtonX)

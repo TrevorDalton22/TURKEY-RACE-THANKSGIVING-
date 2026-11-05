@@ -39,7 +39,7 @@ local Config = {
 	},
 
 	Chef = {
-		StartsAtSeconds = 45,
+		StartsAtSeconds = 45, -- a map can override this with a ChefStartsAt attribute
 		Speed = 25,
 		-- Speeds up when the last turkey gets this far ahead.
 		CatchUpSpeed = 40,
@@ -67,6 +67,9 @@ local Config = {
 	Hazards = {
 		-- Pumpkins rolling down Pumpkin Hill (Pumpkin Patch Panic). Interval is the average gap between pumpkins.
 		Pumpkin = { Interval = 1.4, Speed = 30, Size = 9, Push = 45, Lift = 40, StunSeconds = 1.1 },
+		-- Stove burners and the griddle (Escape the Oven): each is cool, then glows as a warning, then is hot
+		-- and throws any turkey standing on it. Burners start at different points in the cycle.
+		Burner = { CoolSeconds = 3, WarnSeconds = 1, HotSeconds = 2, Push = 25, Lift = 50, StunSeconds = 0.7 },
 	},
 
 	-- Feathers awarded at the end of a race.

@@ -8,8 +8,8 @@
 --   StartPads    one pad per racer, with an Order attribute.
 --   ItemBoxes    power-up boxes.
 --   Hazards      optional; see Hazards.luau.
--- and the attributes DisplayName, Order (rotation order), LaneWidth (the narrowest lane, in studs)
--- and optionally Laps (overrides Config.Laps).
+-- and the attributes DisplayName, Order (rotation order), LaneWidth (the narrowest lane, in studs),
+-- and optionally Laps (overrides Config.Laps) and ChefStartsAt (overrides Config.Chef.StartsAtSeconds).
 
 local Track = {}
 
@@ -20,6 +20,7 @@ export type Map = {
 	DisplayName: string,
 	LaneWidth: number,
 	Laps: number?,
+	ChefStartsAt: number?,
 	points: { Vector3 }, -- flat (Y = 0)
 	heights: { number }, -- racing surface height at each point
 	starts: { number }, -- distance at each point
@@ -53,6 +54,7 @@ local function load(folder: Folder): Map
 		DisplayName = folder:GetAttribute("DisplayName") or folder.Name,
 		LaneWidth = folder:GetAttribute("LaneWidth") or 70,
 		Laps = folder:GetAttribute("Laps"),
+		ChefStartsAt = folder:GetAttribute("ChefStartsAt"),
 		points = points,
 		heights = heights,
 		starts = starts,
