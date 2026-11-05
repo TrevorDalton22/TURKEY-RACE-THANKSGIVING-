@@ -9,6 +9,7 @@ local Track = require(script.Parent.Track)
 local Stats = require(script.Parent.Stats)
 local Chef = require(script.Parent.Chef)
 local PowerUps = require(script.Parent.PowerUps)
+local Hazards = require(script.Parent.Hazards)
 local Sfx = require(script.Parent.Sfx)
 
 local Remotes = ReplicatedStorage.Remotes
@@ -20,6 +21,7 @@ local RaceManager = {}
 local racers = {}
 local raceStart = 0
 local round = 0
+local laps = Config.Laps -- for the current map
 
 local function setPhase(phase: string, seconds: number?)
 	ReplicatedStorage:SetAttribute("Phase", phase)
@@ -100,7 +102,7 @@ local function updateRacer(player: Player, r)
 			r.lap += 1
 			r.nextGate = 1
 			s -= length
-			if r.lap >= Config.Laps then
+			if r.lap >= laps then
 				finish(player, r)
 			else
 				player:SetAttribute("Lap", r.lap + 1)
@@ -201,6 +203,7 @@ local function runRace(mode: string)
 	setPhase("Racing", Config.RaceTimeLimitSeconds)
 	notify(if mode == "Elimination" then "GO! Last turkey gets COOKED!" else "GO! GO! GOBBLE!")
 	PowerUps.begin(racers)
+	Hazards.begin(racers)
 
 	local nextCook = raceStart + Config.Elimination.StartSeconds
 	local chefOut = false
@@ -233,6 +236,7 @@ local function runRace(mode: string)
 	end
 
 	Chef.stop()
+	Hazards.stop()
 	PowerUps.stop()
 
 	local results = {}
@@ -287,6 +291,12 @@ function RaceManager.start()
 		while #Players:GetPlayers() < Config.MinPlayersToStart do
 			task.wait(1)
 		end
+		-- Pick the next race before intermission so the lobby can show it. The map changes every race
+		-- and the mode after each full rotation of maps, so every map gets played in both modes.
+		local map = Track.Maps[round % #Track.Maps + 1]
+		local mode = Config.Modes[math.floor(round / #Track.Maps) % #Config.Modes + 1]
+		ReplicatedStorage:SetAttribute("Map", map.DisplayName)
+		ReplicatedStorage:SetAttribute("Mode", mode)
 		setPhase("Intermission", Config.IntermissionSeconds)
 		task.wait(Config.IntermissionSeconds)
 		if #Players:GetPlayers() < Config.MinPlayersToStart then
@@ -294,9 +304,9 @@ function RaceManager.start()
 		end
 
 		round += 1
-		local mode = Config.Modes[(round - 1) % #Config.Modes + 1]
-		ReplicatedStorage:SetAttribute("Mode", mode)
-		ReplicatedStorage:SetAttribute("Laps", Config.Laps)
+		Track.use(map)
+		laps = map.Laps or Config.Laps
+		ReplicatedStorage:SetAttribute("Laps", laps)
 		runRace(mode)
 		setPhase("Results", Config.ResultsSeconds)
 		task.wait(Config.ResultsSeconds)

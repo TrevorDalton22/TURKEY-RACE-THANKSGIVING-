@@ -15,9 +15,12 @@ local Remotes = ReplicatedStorage.Remotes
 local defs = Config.PowerUps
 local KINDS = { "DrumstickDash", "PieLauncher", "ButterSlide", "GobbleBomb", "MashedPotatoShield", "CornTornado" }
 
--- Tornadoes stay on the table: the strips are 70 studs wide.
-local TORNADO_LATERAL_LIMIT = 30
 local TORNADO_STEER_SPEED = 30
+
+-- How far off the center line a tornado may drift and still stay in the lane (30 on a 70-stud lane).
+local function tornadoLateralLimit(): number
+	return Track.LaneWidth / 2 - 5
+end
 
 local PowerUps = {}
 
@@ -105,9 +108,13 @@ end
 local function floorBelow(position: Vector3): Vector3
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Include
-	params.FilterDescendantsInstances = { workspace.Track }
+	params.FilterDescendantsInstances = { Track.Folder }
 	local hit = workspace:Raycast(position + Vector3.new(0, 5, 0), Vector3.new(0, -20, 0), params)
-	return if hit then hit.Position else Vector3.new(position.X, Track.SurfaceY, position.Z)
+	if hit then
+		return hit.Position
+	end
+	local surface = Track.pointAt(Track.distanceAt(position))
+	return Vector3.new(position.X, surface.Y, position.Z)
 end
 
 -- An anchored, non-colliding effect part.
@@ -286,7 +293,7 @@ function use.CornTornado(player: Player, root: BasePart)
 		parts = parts,
 		ringCount = 5,
 		s = s + 10,
-		lateral = math.clamp((root.Position - center):Dot(side), -TORNADO_LATERAL_LIMIT, TORNADO_LATERAL_LIMIT),
+		lateral = math.clamp((root.Position - center):Dot(side), -tornadoLateralLimit(), tornadoLateralLimit()),
 		angle = 0,
 		expires = os.clock() + def.Seconds,
 		owner = player,
@@ -409,7 +416,7 @@ local function updateTornadoes(dt: number)
 			end
 		end
 		if target then
-			local want = math.clamp((target.Position - center):Dot(side), -TORNADO_LATERAL_LIMIT, TORNADO_LATERAL_LIMIT)
+			local want = math.clamp((target.Position - center):Dot(side), -tornadoLateralLimit(), tornadoLateralLimit())
 			local step = TORNADO_STEER_SPEED * dt
 			t.lateral += math.clamp(want - t.lateral, -step, step)
 			pos = center + side * t.lateral

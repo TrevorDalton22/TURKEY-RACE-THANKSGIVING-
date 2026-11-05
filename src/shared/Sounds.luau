@@ -31,6 +31,9 @@ local Sounds: { [string]: Def } = {
 	Tornado = { Id = 9114158497, Volume = 0.8, Speed = 0.55, Range = 150 }, -- PSE whoosh, slowed into wind
 	Spin = { Id = 136774133309136, Volume = 0.9, Speed = 0.8 },
 
+	-- Map hazards
+	PumpkinHit = { Id = 3765689841, Volume = 0.9, Speed = 0.6, Range = 200 }, -- the bonk, lower and duller
+
 	-- Shop
 	Purchase = { Id = 120891770644830, Volume = 0.6 },
 

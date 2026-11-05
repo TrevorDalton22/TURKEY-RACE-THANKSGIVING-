@@ -25,7 +25,7 @@ function Hud.start(controls)
 	gui.ResetOnSpawn = false
 	gui.Parent = player:WaitForChild("PlayerGui")
 
-	local status = label(gui, { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 8), Size = UDim2.new(0, 460, 0, 38) })
+	local status = label(gui, { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 8), Size = UDim2.new(0, 600, 0, 38) })
 	local countdown = label(gui, { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.4), Size = UDim2.new(0, 260, 0, 180), TextColor3 = ORANGE, Visible = false })
 
 	local racePanel = panel(gui, { Position = UDim2.new(0, 12, 0, 60), Size = UDim2.new(0, 170, 0, 70), Visible = false })
@@ -100,14 +100,15 @@ function Hud.start(controls)
 		local phase = ReplicatedStorage:GetAttribute("Phase") or "Waiting"
 		local remaining = math.max(0, (ReplicatedStorage:GetAttribute("PhaseEndsAt") or 0) - workspace:GetServerTimeNow())
 		local mode = MODE_NAMES[ReplicatedStorage:GetAttribute("Mode") or "Race"] or "Race"
+		local map = ReplicatedStorage:GetAttribute("Map") or ""
 		local racing = player:GetAttribute("Racing") == true
 
 		if phase == "Waiting" then
 			status.Text = "Waiting for turkeys..."
 		elseif phase == "Intermission" then
-			status.Text = `Next race in {math.ceil(remaining)}  •  {mode}`
+			status.Text = `Next race in {math.ceil(remaining)}  •  {map}  •  {mode}`
 		elseif phase == "Countdown" then
-			status.Text = `Get ready!  •  {mode}`
+			status.Text = `Get ready!  •  {map}  •  {mode}`
 		elseif phase == "Racing" then
 			status.Text = if racing then `{mode}  •  {Format.clock(remaining)}` else "Race in progress, next one soon!"
 		else

@@ -8,9 +8,10 @@ local Config = {
 	CountdownSeconds = 3,
 	ResultsSeconds = 8,
 	RaceTimeLimitSeconds = 150,
-	Laps = 2,
+	Laps = 2, -- a map can override this with a Laps attribute
 
-	-- Modes alternate each round so both can be playtested.
+	-- The map changes every race; the mode changes after every map has been played,
+	-- so each map gets both modes.
 	Modes = { "Race", "Elimination" },
 	Elimination = {
 		StartSeconds = 20,
@@ -61,6 +62,12 @@ local Config = {
 		CornTornado = { Name = "Corn Tornado", Icon = "🌪️", Speed = 55, Seconds = 4, HitRadius = 7, SpinSeconds = 1.5, SpinSpeed = 18 },
 	},
 	ItemBoxRespawnSeconds = 4,
+
+	-- Map hazards.
+	Hazards = {
+		-- Pumpkins rolling down Pumpkin Hill (Pumpkin Patch Panic). Interval is the average gap between pumpkins.
+		Pumpkin = { Interval = 1.4, Speed = 30, Size = 9, Push = 45, Lift = 40, StunSeconds = 1.1 },
+	},
 
 	-- Feathers awarded at the end of a race.
 	Rewards = {
