@@ -10,5 +10,6 @@ sourcemap.json
 Thumbs.db
 desktop.ini
 
-# Blender backups
+# Blender backups and preview renders
 *.blend1
+assets/props/renders/

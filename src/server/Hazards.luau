@@ -13,6 +13,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local TrackProps = require(ReplicatedStorage.Shared.TrackProps)
 local Track = require(script.Parent.Track)
 local PowerUps = require(script.Parent.PowerUps)
 local Sfx = require(script.Parent.Sfx)
@@ -23,7 +24,6 @@ local burnerSettings = Config.Hazards.Burner
 local Hazards = {}
 
 local DROP_HEIGHT, DROP_SECONDS, FADE_SECONDS = 8, 0.35, 0.4
-local COLORS = { Color3.fromRGB(240, 130, 30), Color3.fromRGB(225, 110, 25), Color3.fromRGB(250, 155, 45) }
 local WARM_COLOR, HOT_COLOR = Color3.fromRGB(190, 75, 30), Color3.fromRGB(255, 75, 20)
 
 local racers = {}
@@ -58,20 +58,13 @@ end
 
 local function spawnPumpkin(roller)
 	local size = pumpkinSettings.Size
-	local color = COLORS[math.random(#COLORS)]
 	local model = Instance.new("Model")
 	model.Name = "RollingPumpkin"
-
-	-- A ball with three darker ribs through the stem, so you can see it roll.
-	local parts = { effectPart({ Shape = Enum.PartType.Ball, Size = Vector3.one * size, Color = color }, model) }
+	local mesh = TrackProps.new("Pumpkin")
+	mesh.Size *= size / mesh.Size.X
+	mesh.Parent = model
+	local parts = { mesh }
 	local offsets = { CFrame.identity }
-	local ribColor = color:Lerp(Color3.fromRGB(110, 45, 10), 0.5)
-	for i = 0, 2 do
-		table.insert(parts, effectPart({ Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.4, size * 1.02, size * 1.02), Color = ribColor }, model))
-		table.insert(offsets, CFrame.Angles(0, i * math.pi / 3, 0))
-	end
-	table.insert(parts, effectPart({ Size = Vector3.new(0.9, 1.8, 0.9), Color = Color3.fromRGB(95, 110, 40) }, model))
-	table.insert(offsets, CFrame.new(0, size / 2 + 0.6, 0))
 	model.Parent = workspace
 
 	local maxLateral = math.max(0, Track.LaneWidth / 2 - size / 2 - 2)

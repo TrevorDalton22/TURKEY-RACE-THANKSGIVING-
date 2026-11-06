@@ -89,6 +89,10 @@ local Config = {
 		CornTornado = { Name = "Corn Tornado", Icon = "🌪️", Speed = 95, Seconds = 4, HitRadius = 8, SpinSeconds = 1.5, SpinSpeed = 18 },
 	},
 	ItemBoxRespawnSeconds = 4,
+	ItemBoxPickupRadius = 9, -- studs from the box's middle to the rider's
+
+	-- Riding over a boost pad. Reach is how far above the saddle still counts, so a good jump clears one.
+	BoostPad = { Multiplier = 1.5, Seconds = 1.5, Reach = 6 },
 
 	-- Map hazards.
 	Hazards = {

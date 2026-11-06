@@ -10,6 +10,7 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local TrackProps = require(ReplicatedStorage.Shared.TrackProps)
 local Track = require(script.Parent.Track)
 local Sfx = require(script.Parent.Sfx)
 local PowerUps = require(script.Parent.PowerUps)
@@ -171,33 +172,12 @@ end
 
 -- The food -------------------------------------------------------------------------------------------------------
 
-local LOOKS = {}
-
-function LOOKS.Tomato(food: Model)
-	local red = Color3.fromRGB(225, 45, 35)
-	effectPart({ Name = "Body", Shape = Enum.PartType.Ball, Size = Vector3.one * 8, Color = red }, food)
-	effectPart({ Name = "Stem", Size = Vector3.new(3.4, 0.8, 3.4), Color = Color3.fromRGB(70, 150, 50), CFrame = CFrame.new(0, 4, 0) }, food)
-	effectPart({ Name = "Stalk", Size = Vector3.new(0.9, 1.8, 0.9), Color = Color3.fromRGB(70, 150, 50), CFrame = CFrame.new(0, 5, 0) }, food)
-	return red
-end
-
-function LOOKS.Pie(food: Model)
-	local crust, filling = Color3.fromRGB(220, 160, 80), Color3.fromRGB(235, 130, 50)
-	local upright = CFrame.Angles(0, 0, math.rad(90))
-	effectPart({ Name = "Body", Shape = Enum.PartType.Cylinder, Size = Vector3.new(2.6, 13, 13), Color = crust, CFrame = upright }, food)
-	effectPart({ Name = "Filling", Shape = Enum.PartType.Cylinder, Size = Vector3.new(2.7, 10.5, 10.5), Color = filling, CFrame = CFrame.new(0, 0.1, 0) * upright }, food)
-	effectPart({ Name = "Cream", Shape = Enum.PartType.Ball, Size = Vector3.one * 3.4, Color = Color3.fromRGB(255, 250, 235), CFrame = CFrame.new(0, 1.8, 0) }, food)
-	return filling
-end
-
-function LOOKS.Pan(food: Model)
-	local black = Color3.fromRGB(35, 35, 40)
-	effectPart({ Name = "Body", Shape = Enum.PartType.Cylinder, Size = Vector3.new(1.4, 13, 13), Color = black, CFrame = CFrame.Angles(0, 0, math.rad(90)) }, food)
-	effectPart({ Name = "Handle", Size = Vector3.new(1.4, 1.2, 10), Color = black, CFrame = CFrame.new(0, 0, 11) }, food)
-	effectPart({ Name = "Egg", Size = Vector3.new(6, 1.5, 6), Color = Color3.fromRGB(255, 250, 235), CFrame = CFrame.new(0, 0.3, 0) }, food)
-	effectPart({ Name = "Yolk", Shape = Enum.PartType.Ball, Size = Vector3.one * 2.6, Color = Color3.fromRGB(255, 195, 40), CFrame = CFrame.new(0, 1, 0) }, food)
-	return Color3.fromRGB(255, 250, 235)
-end
+-- Each food's model in TrackProps, and the color of the mark it leaves.
+local LOOKS = {
+	Tomato = { Mesh = "Tomato", Splat = Color3.fromRGB(225, 45, 35) },
+	Pie = { Mesh = "Pie", Splat = Color3.fromRGB(235, 130, 50) },
+	Pan = { Mesh = "FryingPan", Splat = Color3.fromRGB(255, 250, 235) },
+}
 
 local function pickFood()
 	local total = 0
@@ -216,12 +196,14 @@ end
 
 local function newFood()
 	local def = pickFood()
+	local look = LOOKS[def.Name]
 	local food = Instance.new("Model")
 	food.Name = def.Name
-	local splat = LOOKS[def.Name](food)
-	food.PrimaryPart = food:FindFirstChild("Body") :: BasePart
+	local mesh = TrackProps.new(look.Mesh)
+	mesh.Parent = food
+	food.PrimaryPart = mesh
 	food.Parent = effects
-	return { def = def, model = food, splat = splat }
+	return { def = def, model = food, splat = look.Splat }
 end
 
 -- The racers he can still throw at, with their root parts.

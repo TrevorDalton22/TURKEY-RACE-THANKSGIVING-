@@ -12,6 +12,7 @@ local Progression = require(script.Parent.Progression)
 local Chef = require(script.Parent.Chef)
 local PowerUps = require(script.Parent.PowerUps)
 local Hazards = require(script.Parent.Hazards)
+local BoostPads = require(script.Parent.BoostPads)
 local Sfx = require(script.Parent.Sfx)
 local JoinCircle = require(script.Parent.JoinCircle)
 local Podium = require(script.Parent.Podium)
@@ -228,6 +229,7 @@ local function runRace(mode: string, joined: { Player }): (any, { Player })
 	notify(if mode == "Elimination" then "GO! Last turkey gets COOKED!" else "GO! GO! GOBBLE!")
 	PowerUps.begin(racers)
 	Hazards.begin(racers)
+	BoostPads.begin(racers)
 
 	local nextCook = raceStart + Config.Elimination.StartSeconds
 	local chefAt = Track.Current.ChefStartsAt or Config.Chef.StartsAtSeconds
@@ -261,6 +263,7 @@ local function runRace(mode: string, joined: { Player }): (any, { Player })
 	end
 
 	Chef.stop()
+	BoostPads.stop()
 	Hazards.stop()
 	PowerUps.stop()
 

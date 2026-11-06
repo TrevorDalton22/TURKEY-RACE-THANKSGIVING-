@@ -8,6 +8,7 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local TrackProps = require(ReplicatedStorage.Shared.TrackProps)
 local Track = require(script.Parent.Track)
 local Sfx = require(script.Parent.Sfx)
 
@@ -73,6 +74,8 @@ local function applySpeed(player: Player, multiplier: number, seconds: number)
 	end)
 end
 
+PowerUps.speedUp = applySpeed
+
 local function removeShield(player: Player)
 	local shield = shields[player]
 	if shield then
@@ -99,10 +102,9 @@ function PowerUps.hit(player: Player, velocity: Vector3, stun: number, message: 
 	return true
 end
 
+-- Clients show or hide the box from this attribute (client/TrackPieces).
 local function setBox(box: BasePart, active: boolean)
 	box:SetAttribute("Active", active)
-	box.Transparency = if active then 0.15 else 1
-	box:FindFirstChildOfClass("BillboardGui").Enabled = active
 end
 
 local function floorBelow(position: Vector3): Vector3
@@ -139,6 +141,18 @@ function use.DrumstickDash(player: Player, root: BasePart)
 	applySpeed(player, def.Multiplier, def.Seconds)
 	Remotes.Notify:FireClient(player, "🍗 DRUMSTICK DASH!")
 	Sfx.all("Dash", root)
+
+	-- The rider holds a drumstick up over their head while it lasts.
+	local stick = TrackProps.new("Drumstick", 0.75)
+	stick.Anchored = false
+	stick.Massless = true
+	stick.CFrame = root.CFrame * CFrame.new(0, 6.5, 0) * CFrame.Angles(0, 0, math.rad(20))
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = root
+	weld.Part1 = stick
+	weld.Parent = stick
+	stick.Parent = player.Character
+	Debris:AddItem(stick, def.Seconds)
 end
 
 function use.PieLauncher(player: Player, root: BasePart)
@@ -157,13 +171,8 @@ function use.PieLauncher(player: Player, root: BasePart)
 		end
 	end
 
-	local pie = effectPart({
-		Name = "Pie",
-		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(0.8, 3, 3),
-		Color = Color3.fromRGB(215, 150, 70),
-		CFrame = CFrame.new(root.Position + dir * 4 + Vector3.new(0, 1, 0)) * CFrame.Angles(0, 0, math.rad(90)),
-	})
+	local pie = TrackProps.new("Pie", 0.6)
+	pie.CFrame = CFrame.new(root.Position + dir * 4 + Vector3.new(0, 1, 0))
 	pie.Parent = workspace
 	table.insert(pies, { part = pie, dir = dir, traveled = 0, owner = player, target = target })
 	Sfx.all("Throw", root.Position)
@@ -172,12 +181,8 @@ end
 function use.ButterSlide(player: Player, root: BasePart)
 	local look = root.CFrame.LookVector
 	local spot = floorBelow(root.Position - Vector3.new(look.X, 0, look.Z).Unit * 6)
-	local butter = effectPart({
-		Name = "Butter",
-		Size = Vector3.new(4, 1, 3),
-		Color = Color3.fromRGB(255, 230, 110),
-		Position = spot + Vector3.new(0, 0.5, 0),
-	})
+	local butter = TrackProps.new("Butter", 0.9)
+	butter.Position = spot + Vector3.new(0, butter.Size.Y / 2, 0)
 	butter.Parent = workspace
 	table.insert(butters, { part = butter, owner = player, placedAt = os.clock() })
 end
@@ -314,7 +319,7 @@ local function updateBoxes()
 		local root = activeRoot(player)
 		if root and (player:GetAttribute("PowerUp") or "") == "" then
 			for _, box in Track.ItemBoxes do
-				if box:GetAttribute("Active") and (box.Position - root.Position).Magnitude < 7 then
+				if box:GetAttribute("Active") and (box.Position - root.Position).Magnitude < Config.ItemBoxPickupRadius then
 					local kind = KINDS[math.random(#KINDS)]
 					player:SetAttribute("PowerUp", kind)
 					Remotes.Notify:FireClient(player, `{defs[kind].Icon} Got {defs[kind].Name}! Press E`)
@@ -339,7 +344,8 @@ local function updatePies(dt: number)
 		end
 		local step = def.Speed * dt
 		pie.traveled += step
-		pie.part.CFrame += pie.dir * step
+		-- Spinning like a thrown disc.
+		pie.part.CFrame = (pie.part.CFrame + pie.dir * step) * CFrame.Angles(0, dt * 10, 0)
 
 		local victim = nil
 		for other in racers do

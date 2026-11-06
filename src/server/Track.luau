@@ -9,6 +9,7 @@
 --   ItemBoxes    power-up boxes.
 --   Hazards      optional; see Hazards.luau.
 --   ChefSpot     a marker part in the middle of the map, centered where the chef's feet go.
+--   BoostPads    boost pads; see BoostPads.luau.
 -- and the attributes DisplayName, Order (rotation order), LaneWidth (the narrowest lane, in studs),
 -- and optionally Laps (overrides Config.Laps) and ChefStartsAt (overrides Config.Chef.StartsAtSeconds).
 
@@ -30,6 +31,7 @@ export type Map = {
 	Gates: { number },
 	StartPads: { BasePart },
 	ItemBoxes: { BasePart },
+	BoostPads: { BasePart },
 }
 
 local function load(folder: Folder): Map
@@ -65,6 +67,7 @@ local function load(folder: Folder): Map
 		Gates = {}, -- filled in once distanceAt works for this map
 		StartPads = pads,
 		ItemBoxes = folder.ItemBoxes:GetChildren(),
+		BoostPads = folder.BoostPads:GetChildren(),
 	}
 end
 
@@ -114,6 +117,7 @@ function Track.use(map: Map)
 	Track.Gates = map.Gates
 	Track.StartPads = map.StartPads
 	Track.ItemBoxes = map.ItemBoxes
+	Track.BoostPads = map.BoostPads
 end
 
 -- Every map, in rotation order.
