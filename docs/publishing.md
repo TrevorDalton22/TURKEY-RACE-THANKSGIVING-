@@ -29,9 +29,10 @@ Thanksgiving is **Thursday, November 26, 2026**. Publish privately first, test w
 - **Icon:** 512×512. A close-up of a turkey works best at small sizes.
 - **Thumbnails:** 1920×1080, up to 10. Good shots:
   - turkeys lined up in the oven with the burners glowing
-  - the chef chasing the pack
-  - pumpkins rolling down Pumpkin Hill
-  - the dinner table from above
+  - the chef on his cake stand with a frying pan in mid-air
+  - the restaurant kitchen from the butcher-block counter
+  - pumpkins rolling down Pumpkin Hill, with the house behind
+  - the dining room with the chandelier and the table from above
 - **Maturity & Compliance questionnaire:** required before going public. Answer it honestly. The frying-pan bonk and getting "cooked" are cartoon slapstick with no blood.
 - When everything above checks out: **Permissions → Public.**
 
@@ -80,12 +81,12 @@ The prices are suggestions; change them on the Creator Hub any time and the shop
 
 ```
 🦃 DON'T GET COOKED! 🦃
-Race up to 8 turkeys through a giant Thanksgiving, grab silly food power-ups, and outrun the angry chef before he bonks you with his frying pan!
+Race up to 8 turkeys through a giant house, grab silly food power-ups, and dodge the tomatoes, pies and frying pans the angry chef hurls from the middle of the room!
 
 🏁 3 MAPS
-• Thanksgiving Dinner Dash: race across a giant dinner table
-• Pumpkin Patch Panic: dodge pumpkins rolling down the hill
-• Escape the Oven: hop kitchen counters and dodge red-hot burners
+• Thanksgiving Dinner Dash: race around the table in a grand dining room
+• Pumpkin Patch Panic: dodge pumpkins rolling down the hill in the backyard garden
+• Escape the Oven: burst out of the oven and across a restaurant kitchen's red-hot burners
 
 🍗 6 POWER-UPS
 Drumstick Dash • Pie Launcher • Butter Slide • Gobble Bomb • Potato Shield • Corn Tornado

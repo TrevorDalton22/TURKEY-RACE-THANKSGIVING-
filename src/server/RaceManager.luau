@@ -210,6 +210,7 @@ local function runRace(mode: string, joined: { Player }): (any, { Player })
 	end
 
 	local gate = StartGate.build()
+	Chef.enter(racers)
 	setPhase("Countdown", Config.CountdownSeconds)
 	task.wait(Config.CountdownSeconds)
 	raceStart = os.clock()
@@ -251,7 +252,7 @@ local function runRace(mode: string, joined: { Player }): (any, { Player })
 		end
 		if not chefOut and elapsed >= chefAt then
 			chefOut = true
-			Chef.begin(racers)
+			Chef.begin()
 		end
 		if mode == "Elimination" and os.clock() >= nextCook then
 			nextCook += Config.Elimination.IntervalSeconds

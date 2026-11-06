@@ -4,7 +4,7 @@ Roblox game concept — shareable notes
 
 ## The pitch
 
-A fast, chaotic Thanksgiving-themed multiplayer racing game where players ARE turkeys trying to avoid becoming Thanksgiving dinner. Race through oversized holiday environments, grab silly food-themed power-ups, and outrun a giant angry chef.
+A fast, chaotic Thanksgiving-themed multiplayer racing game where players ARE turkeys trying to avoid becoming Thanksgiving dinner. Race through a giant house, grab silly food-themed power-ups, and dodge the food a giant angry chef throws from the middle of the room.
 
 ## Core hook
 
@@ -21,9 +21,9 @@ Players control waddling, wing-flapping turkeys rather than cars. The racing sho
 5. Survive the chef, finish the race, and earn Feathers and Wins.
 6. Spend Feathers on turkey skins, trails, animations, and other cosmetics; queue again.
 
-## Signature feature: the chef chase
+## Signature feature: the chef in the middle
 
-Near the end of each race, an enormous angry chef appears with a spatula or frying pan. He chases the pack, especially the turkeys at the back. Getting hit sends a turkey flying and costs precious time. This creates funny, shareable moments.
+An enormous angry chef stands in the middle of every map and, a few seconds into the race, starts throwing tomatoes, pies and frying pans at the turkeys. A glowing circle marks where each one will land, so you can swerve or jump clear. Getting hit sends a turkey flying and costs precious time. This creates funny, shareable moments.
 
 ## Optional mode: Don't Get Cooked (elimination)
 
@@ -31,9 +31,9 @@ At each checkpoint or short round, the slowest turkey is eliminated and comicall
 
 ## Map ideas
 
-- **Thanksgiving Dinner Dash:** Race across a giant dinner table; dodge forks, food, and slippery gravy.
-- **Pumpkin Patch Panic:** Dash through corn mazes, hay bales, and rolling pumpkins.
-- **Escape the Oven:** Jump across kitchen counters and stovetops while escaping the chef.
+- **Thanksgiving Dinner Dash:** Race around the table in a grand dining room; dodge forks, food, and slippery gravy.
+- **Pumpkin Patch Panic:** Dash through the corn, hay bales, and rolling pumpkins in the backyard garden.
+- **Escape the Oven:** Burst out of the oven and across the counters and stovetops of a professional restaurant kitchen.
 
 ## Power-ups
 
@@ -77,14 +77,14 @@ Prefer cosmetics over paid competitive advantages. Prices are ideas, not validat
 - 3 power-ups initially; expand to 6
 - Working race timer, checkpoints, finish/results screen, and rewards
 - 4 turkey skins initially; expand to 8
-- Chef chase as the standout feature
+- The food-throwing chef as the standout feature
 - Wins leaderboard and a basic shop
 
 ## Launch / marketing
 
 - **Working title:** "TURKEY RACE! [THANKSGIVING]"
 - **Alternative title:** "Turkey Turbo!"
-- **Thumbnail:** Several panicked turkeys racing toward the camera with a giant chef chasing them. Big readable text: "DON'T GET COOKED!"
+- **Thumbnail:** Several panicked turkeys racing toward the camera with a giant chef hurling food at them. Big readable text: "DON'T GET COOKED!"
 - **Trailers/short clips:** Show ridiculous chef knockbacks, close finishes, pie attacks, and funny turkey movement.
 - **Best timing:** Launch or update around the Thanksgiving season, while keeping the game playable after the holiday.
 
@@ -92,7 +92,7 @@ Prefer cosmetics over paid competitive advantages. Prices are ideas, not validat
 
 - Turkeys as the playable racers are a funny visual hook.
 - Holiday-themed oversized tracks give the game a distinct identity.
-- Racing + chef chase + optional elimination mode creates high-stakes moments.
+- Racing + a food-throwing chef + optional elimination mode creates high-stakes moments.
 - Short matches are easy to replay and share.
 
 ## Originality note
@@ -110,4 +110,4 @@ Choose a primary mode:
 
 ## One-sentence pitch to a friend
 
-"What if we made a Roblox Thanksgiving racing game where everyone plays as goofy turkeys, attacks each other with pies, and has to outrun a giant chef before getting cooked?"
+"What if we made a Roblox Thanksgiving racing game where everyone plays as goofy turkeys, attacks each other with pies, and has to dodge the food a giant chef throws at them before getting cooked?"

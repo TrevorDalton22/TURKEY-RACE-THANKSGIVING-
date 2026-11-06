@@ -1,6 +1,6 @@
 # TURKEY RACE! [THANKSGIVING]
 
-A chaotic Thanksgiving multiplayer racing game for Roblox. Players are turkeys racing across oversized holiday maps, throwing pies, and outrunning a giant angry chef. **Don't get cooked!**
+A chaotic Thanksgiving multiplayer racing game for Roblox. Players ride turkeys through a giant dining room, restaurant kitchen and backyard, throwing pies and dodging the food a giant angry chef hurls from the middle of the room. **Don't get cooked!**
 
 The full concept is in [docs/concept.md](docs/concept.md). The steps to put it on Roblox are in [docs/publishing.md](docs/publishing.md).
 

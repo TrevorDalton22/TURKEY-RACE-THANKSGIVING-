@@ -56,16 +56,25 @@ local Config = {
 		FlapsPerJump = 2,
 	},
 
+	-- The chef stands in the middle of the map and throws food at the turkeys.
 	Chef = {
-		StartsAtSeconds = 35, -- a map can override this with a ChefStartsAt attribute
-		Speed = 50,
-		-- Speeds up when the last turkey gets this far ahead.
-		CatchUpSpeed = 80,
-		CatchUpDistance = 250,
-		SpawnBehind = 180,
-		HitRadius = 18,
-		HitCooldown = 3,
-		StunSeconds = 1.4,
+		StartsAtSeconds = 8, -- seconds after GO; a map can override this with a ChefStartsAt attribute
+		Scale = 1.5,
+		-- Seconds between throws, shortened by CrowdSpeedup for each racer after the first.
+		ThrowSeconds = 2.6,
+		CrowdSpeedup = 0.2,
+		MinThrowSeconds = 1.2,
+		-- Food flies at ThrowSpeed (studs a second), within these limits, so the circle always gives time to dodge.
+		ThrowSpeed = 130,
+		MinFlightSeconds = 1,
+		MaxFlightSeconds = 1.6,
+		ArcHeight = 35,
+		SplatSeconds = 1.6,
+		Foods = {
+			{ Name = "Tomato", Weight = 5, Radius = 9, Push = 35, Lift = 35, StunSeconds = 0.8, Sound = "Splat", Message = "🍅 SPLAT! The chef got you with a tomato!" },
+			{ Name = "Pie", Weight = 3, Radius = 12, Push = 30, Lift = 40, StunSeconds = 1, Sound = "Splat", Message = "🥧 SPLAT! A pie from the chef!" },
+			{ Name = "Pan", Weight = 2, Radius = 8, Push = 50, Lift = 55, StunSeconds = 1.4, Sound = "Bonk", Message = "🍳 BONK! The chef threw a frying pan!" },
+		},
 	},
 
 	PowerUps = {

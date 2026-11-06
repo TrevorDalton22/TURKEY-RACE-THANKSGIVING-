@@ -8,6 +8,7 @@
 --   StartPads    one pad per racer, with an Order attribute.
 --   ItemBoxes    power-up boxes.
 --   Hazards      optional; see Hazards.luau.
+--   ChefSpot     a marker part in the middle of the map, centered where the chef's feet go.
 -- and the attributes DisplayName, Order (rotation order), LaneWidth (the narrowest lane, in studs),
 -- and optionally Laps (overrides Config.Laps) and ChefStartsAt (overrides Config.Chef.StartsAtSeconds).
 
@@ -21,6 +22,7 @@ export type Map = {
 	LaneWidth: number,
 	Laps: number?,
 	ChefStartsAt: number?,
+	ChefSpot: CFrame,
 	points: { Vector3 }, -- flat (Y = 0)
 	heights: { number }, -- racing surface height at each point
 	starts: { number }, -- distance at each point
@@ -55,6 +57,7 @@ local function load(folder: Folder): Map
 		LaneWidth = folder:GetAttribute("LaneWidth") or 70,
 		Laps = folder:GetAttribute("Laps"),
 		ChefStartsAt = folder:GetAttribute("ChefStartsAt"),
+		ChefSpot = folder.ChefSpot.CFrame,
 		points = points,
 		heights = heights,
 		starts = starts,
