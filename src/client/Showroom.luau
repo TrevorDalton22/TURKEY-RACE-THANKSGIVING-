@@ -11,6 +11,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Season = require(ReplicatedStorage.Shared.Season)
 local Skins = require(ReplicatedStorage.Shared.Skins)
+local TurkeyModel = require(ReplicatedStorage.Shared.TurkeyModel)
 local Purchases = require(script.Parent.Purchases)
 local Shop = require(script.Parent.Shop)
 local Ui = require(script.Parent.Ui)
@@ -20,6 +21,8 @@ local player = Players.LocalPlayer
 local Showroom = {}
 
 local SPIN_SPEED = 0.6 -- radians a second
+-- A full-size turkey wouldn't fit between its neighbors.
+local TURKEY_SCALE = 0.62
 
 -- Which pass tier gives each pass skin.
 local passTier: { [string]: number } = {}
@@ -31,43 +34,27 @@ for tier, rewards in Season.Rewards do
 	end
 end
 
--- The skin's turkey as one model whose pivot is the middle of its body, standing on nothing yet.
+-- The skin's turkey as one model whose pivot is between its feet, scaled to fit a stand.
 local function turkey(skinId: string): Model
+	local skin = Skins.get(skinId)
 	local model = Instance.new("Model")
 	model.Name = "ShowroomTurkey"
+	local mesh = TurkeyModel.newMesh(skinId)
+	mesh.CFrame = TurkeyModel.MeshInGround
+	mesh.Parent = model
 	for _, piece in Skins.pieces(skinId) do
-		local p = Instance.new("Part")
-		p.Anchored = true
-		p.CanCollide = false
-		p.CanQuery = false
-		p.CanTouch = false
-		p.TopSurface = Enum.SurfaceType.Smooth
-		p.BottomSurface = Enum.SurfaceType.Smooth
-		p.Material = Enum.Material.SmoothPlastic
-		for k, v in piece.Props do
-			p[k] = v
-		end
-		if piece.Mesh == "Sphere" then
-			local mesh = Instance.new("SpecialMesh")
-			mesh.MeshType = Enum.MeshType.Sphere
-			mesh.Parent = p
-		end
-		p.CFrame = piece.Offset
-		if piece.Sparkle then
-			local sparkle = Instance.new("ParticleEmitter")
-			sparkle.Texture = "rbxasset://textures/particles/sparkles_main.dds"
-			sparkle.Color = ColorSequence.new(piece.Sparkle)
-			sparkle.LightEmission = 0.8
-			sparkle.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(1, 0) })
-			sparkle.Lifetime = NumberRange.new(0.8, 1.4)
-			sparkle.Speed = NumberRange.new(1, 2)
-			sparkle.SpreadAngle = Vector2.new(180, 180)
-			sparkle.Rate = 12
-			sparkle.Parent = p
-		end
-		p.Parent = model
+		local part = TurkeyModel.newPiece(piece)
+		part.CFrame = piece.CFrame
+		part.Parent = model
+	end
+	if skin.Sparkle then
+		local glitter = TurkeyModel.newPiece({ Group = "Body", CFrame = CFrame.new(), Props = { Size = Vector3.new(6.2, 5.4, 6.8), Transparency = 1 } })
+		glitter.CFrame = CFrame.new(TurkeyModel.BodyCenter)
+		TurkeyModel.addSparkle(glitter, skin.Sparkle)
+		glitter.Parent = model
 	end
 	model.WorldPivot = CFrame.new()
+	model:ScaleTo(TURKEY_SCALE)
 	return model
 end
 
@@ -123,9 +110,9 @@ function Showroom.start()
 			local model = turkey(skin.Id)
 			-- ExtentsSize is the stand's size in the world, so a cylinder stood on end works too.
 			local half = stand.ExtentsSize.Y / 2
-			local top = stand.Position + Vector3.new(0, half + Skins.FootDepth + 0.1, 0)
+			local top = stand.Position + Vector3.new(0, half + 0.1, 0)
 			model.Parent = workspace
-			local price = sign(stand, skin, half + 12)
+			local price = sign(stand, skin, half + 10.5)
 
 			local prompt = Instance.new("ProximityPrompt")
 			prompt.ActionText = "View in Shop"

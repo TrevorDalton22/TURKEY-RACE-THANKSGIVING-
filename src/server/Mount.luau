@@ -2,54 +2,18 @@
 -- the turkey is welded under it, and the humanoid stands tall enough (HipHeight) for the turkey's feet
 -- to reach the ground.
 --
--- The turkey is a model named TurkeyMount in the character. Each group in Skins.Joints has a hidden
--- joint part (Joint<Group>) attached by a Weld named after the group: Body hangs under the root part,
--- the others hang off the body at their pivots. The visible pieces are welded to their group's joint,
--- so clients can animate the turkey just by turning those welds (client/Riding).
+-- The turkey is a model named TurkeyMount in the character, holding a clone of the rigged mesh from
+-- shared/TurkeyModel. Clients animate its bones on their own screens (client/Riding), and hats follow the
+-- head through JointHead, a hidden part on a Weld named Head whose offset those clients update.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Skins = require(ReplicatedStorage.Shared.Skins)
+local TurkeyModel = require(ReplicatedStorage.Shared.TurkeyModel)
 
 local Mount = {}
-
--- Glitter drifting off the surface of a part (the Golden Turkey and friends).
-local function sparkle(part: BasePart, color: Color3)
-	local emitter = Instance.new("ParticleEmitter")
-	emitter.Texture = "rbxasset://textures/particles/sparkles_main.dds"
-	emitter.Color = ColorSequence.new(color)
-	emitter.LightEmission = 1
-	emitter.Rate = 14
-	emitter.Lifetime = NumberRange.new(0.5, 1)
-	emitter.Speed = NumberRange.new(0.5, 1.5)
-	emitter.SpreadAngle = Vector2.new(180, 180)
-	emitter.Size = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0),
-		NumberSequenceKeypoint.new(0.3, 0.55),
-		NumberSequenceKeypoint.new(1, 0),
-	})
-	emitter.Shape = Enum.ParticleEmitterShape.Sphere
-	emitter.ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface
-	emitter.Parent = part
-end
-
-local function newPart(name: string, props): Part
-	local p = Instance.new("Part")
-	p.Name = name
-	p.Massless = true
-	p.CanCollide = false
-	p.CanQuery = false
-	p.CanTouch = false
-	p.TopSurface = Enum.SurfaceType.Smooth
-	p.BottomSurface = Enum.SurfaceType.Smooth
-	p.Material = Enum.Material.SmoothPlastic
-	for k, v in props do
-		p[k] = v
-	end
-	return p
-end
 
 -- part1 sits at part0 * c0.
 local function weld(part0: BasePart, part1: BasePart, c0: CFrame, name: string): Weld
@@ -60,6 +24,18 @@ local function weld(part0: BasePart, part1: BasePart, c0: CFrame, name: string):
 	w.C0 = c0
 	w.Parent = part1
 	return w
+end
+
+local function hiddenPart(name: string, size: Vector3): Part
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Size = size
+	p.Transparency = 1
+	p.Massless = true
+	p.CanCollide = false
+	p.CanQuery = false
+	p.CanTouch = false
+	return p
 end
 
 -- Safe to call again on the same character: the old turkey is replaced.
@@ -80,34 +56,34 @@ local function mount(character: Model, skinId: string?)
 	humanoid.UseJumpPower = false
 	humanoid.JumpHeight = Config.Movement.JumpHeight
 
+	local skin = Skins.get(skinId)
 	local model = Instance.new("Model")
 	model.Name = "TurkeyMount"
-	local joints: { [string]: BasePart } = {}
-	for group in Skins.Joints do
-		joints[group] = newPart("Joint" .. group, { Size = Vector3.one * 0.2, Transparency = 1 })
-	end
-	weld(root, joints.Body, CFrame.new(0, Skins.FootDepth - rideHeight, 0), "Body")
-	for group, pivot in Skins.Joints do
-		if group ~= "Body" then
-			weld(joints.Body, joints[group], pivot, group)
-		end
-	end
-	for _, joint in joints do
-		joint.Parent = model
+
+	-- The turkey's feet are on the ground under the rider, with the saddle right below them.
+	local mesh = TurkeyModel.newMesh(skin.Id)
+	mesh.Anchored = false
+	weld(root, mesh, CFrame.new(0, -rideHeight, -TurkeyModel.SeatBehind) * TurkeyModel.MeshInGround, "Mount")
+	mesh.Parent = model
+
+	local head = hiddenPart("JointHead", Vector3.one * 0.2)
+	weld(mesh, head, CFrame.new(), "Head")
+	head.Parent = model
+
+	-- Add-ons are placed in ground space; their welds are relative to the mesh.
+	local groundToMesh = TurkeyModel.MeshInGround:Inverse()
+	for _, piece in Skins.pieces(skin.Id) do
+		local part = TurkeyModel.newPiece(piece)
+		part.Anchored = false
+		weld(if piece.Group == "Head" then head else mesh, part, groundToMesh * piece.CFrame, "Weld")
+		part.Parent = model
 	end
 
-	for _, piece in Skins.pieces(skinId) do
-		local part = newPart("Piece", piece.Props)
-		if piece.Mesh == "Sphere" then
-			local mesh = Instance.new("SpecialMesh")
-			mesh.MeshType = Enum.MeshType.Sphere
-			mesh.Parent = part
-		end
-		weld(joints[piece.Group], part, Skins.Joints[piece.Group]:Inverse() * piece.Offset, "Weld")
-		if piece.Sparkle then
-			sparkle(part, piece.Sparkle)
-		end
-		part.Parent = model
+	if skin.Sparkle then
+		local glitter = hiddenPart("Glitter", Vector3.new(6.2, 5.4, 6.8))
+		weld(mesh, glitter, groundToMesh * CFrame.new(TurkeyModel.BodyCenter), "Weld")
+		TurkeyModel.addSparkle(glitter, skin.Sparkle)
+		glitter.Parent = model
 	end
 	model.Parent = character
 end

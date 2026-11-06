@@ -40,7 +40,9 @@ local Config = {
 	-- Everyone rides a turkey. Speeds are studs a second: trotting, galloping (sprint, uses stamina)
 	-- and the belly-slide burst.
 	Movement = {
-		RideHeight = 7.5, -- how high the rider sits: the middle of their body, above the ground
+		-- How high the middle of the rider's body is above the ground. The sitting pose drops their hips about a stud
+		-- below that, onto the saddle, whose seat tops out 7.4 studs up (assets/turkey).
+		RideHeight = 8.6,
 		JumpHeight = 8,
 		WalkSpeed = 36,
 		SprintSpeed = 54,

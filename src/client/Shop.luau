@@ -11,6 +11,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Season = require(ReplicatedStorage.Shared.Season)
 local Skins = require(ReplicatedStorage.Shared.Skins)
+local TurkeyModel = require(ReplicatedStorage.Shared.TurkeyModel)
 local Audio = require(script.Parent.Audio)
 local Purchases = require(script.Parent.Purchases)
 local Ui = require(script.Parent.Ui)
@@ -40,24 +41,6 @@ for tier, rewards in Season.Rewards do
 	end
 end
 
-local function previewPart(parent: Instance, piece: Skins.Piece)
-	local p = Instance.new("Part")
-	p.Anchored = true
-	p.TopSurface = Enum.SurfaceType.Smooth
-	p.BottomSurface = Enum.SurfaceType.Smooth
-	p.Material = Enum.Material.SmoothPlastic -- matches the turkey the server builds
-	for k, v in piece.Props do
-		p[k] = v
-	end
-	if piece.Mesh == "Sphere" then
-		local mesh = Instance.new("SpecialMesh")
-		mesh.MeshType = Enum.MeshType.Sphere
-		mesh.Parent = p
-	end
-	p.CFrame = piece.Offset
-	p.Parent = parent
-end
-
 -- Builds a little turkey in a ViewportFrame and returns the camera that looks at it.
 local function buildPreview(card: Frame, skin): Camera
 	-- Tinted with the skin's rarity color, so rare skins stand out at a glance.
@@ -69,9 +52,14 @@ local function buildPreview(card: Frame, skin): Camera
 	Instance.new("UICorner").Parent = viewport
 	viewport.Parent = card
 
-	-- The turkey with its body at the origin, in its resting pose.
+	-- The turkey standing at the origin, in its resting pose, with whatever it wears.
+	local mesh = TurkeyModel.newMesh(skin.Id, true)
+	mesh.CFrame = TurkeyModel.MeshInGround
+	mesh.Parent = viewport
 	for _, piece in Skins.pieces(skin.Id) do
-		previewPart(viewport, piece)
+		local part = TurkeyModel.newPiece(piece)
+		part.CFrame = piece.CFrame
+		part.Parent = viewport
 	end
 
 	local camera = Instance.new("Camera")
@@ -469,8 +457,8 @@ function Shop.start(passApi)
 		end
 		local angle = os.clock() * 0.8
 		-- Far enough back to fit the tail fan, the tallest hat (the chef's toque) and the feet.
-		local eye = Vector3.new(math.sin(angle) * 19, 3, -math.cos(angle) * 19)
-		local view = CFrame.lookAt(eye, Vector3.new(0, 0.9, 0))
+		local eye = Vector3.new(math.sin(angle) * 24, 10, -math.cos(angle) * 24)
+		local view = CFrame.lookAt(eye, Vector3.new(0, 6.4, 0))
 		for _, entry in entries do
 			entry.camera.CFrame = view
 		end
