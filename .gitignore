@@ -13,3 +13,4 @@ desktop.ini
 # Blender backups and preview renders
 *.blend1
 assets/props/renders/
+assets/lowpoly/renders/

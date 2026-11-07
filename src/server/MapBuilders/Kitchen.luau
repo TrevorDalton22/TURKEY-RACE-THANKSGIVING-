@@ -353,9 +353,10 @@ local function walkIn(group: Instance)
 end
 
 local function chalkboard(group: Instance)
-	local frame = CFrame.lookAt(Vector3.new(-570, 0, -232), Vector3.new(-570, 0, 0))
-	box(group, "BoardFrame", Vector3.new(84, 58, 1.4), frame * CFrame.new(0, 124, -0.8), WOOD, Material.Wood, SHELL)
-	local board = box(group, "Board", Vector3.new(78, 52, 0.6), frame * CFrame.new(0, 124, -1.8), rgb(40, 48, 44), nil, SHELL)
+	-- Between the walk-in and the fridge.
+	local frame = CFrame.lookAt(Vector3.new(-597, 0, -232), Vector3.new(-597, 0, 0))
+	box(group, "BoardFrame", Vector3.new(50, 46, 1.4), frame * CFrame.new(0, 118, -0.8), WOOD, Material.Wood, SHELL)
+	local board = box(group, "Board", Vector3.new(45, 41, 0.6), frame * CFrame.new(0, 118, -1.8), rgb(40, 48, 44), nil, SHELL)
 	Kit.sign(board, "TODAY'S SPECIAL\nTURKEY 🦃\n(if you can catch one)", rgb(240, 240, 230))
 end
 

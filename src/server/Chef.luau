@@ -20,9 +20,9 @@ local settings = Config.Chef
 
 local Chef = {}
 
-local SCALE = settings.Scale
-local SHOULDER = CFrame.new(9.5 * SCALE, 25 * SCALE, 0)
-local ARM_LENGTH = 16 * SCALE
+-- Where his throwing arm joins his body, from his feet, and how far down it his hand is.
+local SHOULDER = CFrame.new(14.25, 37.5, 0)
+local ARM_LENGTH = 24
 
 -- The throwing arm's angle: 0 hangs down, 90 degrees points forward, past 180 is back behind his head.
 local IDLE_ANGLE, WINDUP_ANGLE, RELEASE_ANGLE, FOLLOW_ANGLE = math.rad(35), math.rad(215), math.rad(110), math.rad(55)
@@ -61,14 +61,13 @@ end
 
 -- The chef's model ----------------------------------------------------------------------------------------------
 
--- Sizes and offsets are at SCALE 1, with his feet on the origin and his front facing -Z. `group` says what the part
--- moves with: nil his body, "arm" the throwing arm (offset from the shoulder, hanging along -Y).
-local function add(props, offset: CFrame, group: string?)
-	props.Size *= SCALE
-	local p = effectPart(props, model)
-	p.CastShadow = true
-	table.insert(parts, { offset = offset.Rotation + offset.Position * SCALE, group = group })
-	table.insert(partList, p)
+-- Two meshes from assets/lowpoly: his body, whose origin is his feet with his front facing -Z, and his throwing arm,
+-- whose origin is its shoulder, hanging along -Y. Each has an Offset attribute: how far its middle is from its origin.
+local function add(name: string, group: string?)
+	local mesh = TrackProps.new(name)
+	mesh.Parent = model
+	table.insert(parts, { offset = CFrame.new(mesh:GetAttribute("Offset")), group = group })
+	table.insert(partList, mesh)
 end
 
 local function build()
@@ -77,74 +76,8 @@ local function build()
 	model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
 	table.clear(parts)
 	table.clear(partList)
-
-	local white, cream = Color3.fromRGB(248, 248, 244), Color3.fromRGB(230, 225, 215)
-	local black, grey = Color3.fromRGB(30, 30, 35), Color3.fromRGB(70, 72, 80)
-	local skin, hair = Color3.fromRGB(255, 205, 170), Color3.fromRGB(90, 55, 30)
-	local red, steel = Color3.fromRGB(205, 40, 40), Color3.fromRGB(150, 155, 165)
-	local ball, cylinder = Enum.PartType.Ball, Enum.PartType.Cylinder
-	local upright = CFrame.Angles(0, 0, math.rad(90))
-
-	-- Boots and checked trousers.
-	for _, x in { -3.6, 3.6 } do
-		add({ Size = Vector3.new(5.4, 2.4, 7.6), Color = black }, CFrame.new(x, 1.2, -0.8))
-		add({ Size = Vector3.new(4.8, 10, 4.8), Color = grey }, CFrame.new(x, 7, 0))
-		add({ Size = Vector3.new(4.9, 1.2, 4.9), Color = black }, CFrame.new(x, 5.4, 0))
-		add({ Size = Vector3.new(4.9, 1.2, 4.9), Color = black }, CFrame.new(x, 9, 0))
-	end
-
-	-- A round white coat with a double row of buttons, an apron and a red neckerchief.
-	add({ Shape = cylinder, Size = Vector3.new(15, 17, 17), Color = white }, CFrame.new(0, 19, 0) * upright)
-	add({ Shape = ball, Size = Vector3.new(17, 17, 17), Color = white }, CFrame.new(0, 12, 0))
-	add({ Shape = ball, Size = Vector3.new(17, 17, 17), Color = white }, CFrame.new(0, 26, 0))
-	add({ Size = Vector3.new(12, 13, 0.6), Color = cream }, CFrame.new(0, 13, -8.2))
-	add({ Size = Vector3.new(14, 1, 0.8), Color = red }, CFrame.new(0, 17.5, -8.1))
-	for _, x in { -2.4, 2.4 } do
-		for _, y in { 24, 27, 30 } do
-			add({ Shape = ball, Size = Vector3.new(1.3, 1.3, 1.3), Color = black }, CFrame.new(x, y, -7.6 + (y - 24) * 0.25))
-		end
-	end
-	add({ Shape = cylinder, Size = Vector3.new(2.4, 10, 10), Color = red }, CFrame.new(0, 33, 0) * upright)
-	add({ Size = Vector3.new(3, 4, 1), Color = red }, CFrame.new(1.6, 30.5, -5.2) * CFrame.Angles(0, 0, math.rad(-18)))
-
-	-- A big round head, furious eyebrows and a curled moustache.
-	add({ Shape = ball, Size = Vector3.new(13, 13, 13), Color = skin }, CFrame.new(0, 39, 0))
-	add({ Shape = ball, Size = Vector3.new(3.4, 3.4, 3.4), Color = Color3.fromRGB(245, 175, 145) }, CFrame.new(0, 38.6, -6.4))
-	for _, side in { -1, 1 } do
-		add({ Shape = ball, Size = Vector3.new(3.2, 3.2, 3.2), Color = white }, CFrame.new(side * 2.5, 40.6, -5.2))
-		add({ Shape = ball, Size = Vector3.new(1.5, 1.5, 1.5), Color = black }, CFrame.new(side * 2.2, 40.5, -6.5))
-		-- Brows slope down toward the nose.
-		add({ Size = Vector3.new(4.4, 1, 0.9), Color = hair }, CFrame.new(side * 2.6, 42.8, -5.6) * CFrame.Angles(0, 0, math.rad(side * 22)))
-		add({ Size = Vector3.new(4.6, 1.3, 1.2), Color = hair }, CFrame.new(side * 2.6, 36.6, -6) * CFrame.Angles(0, 0, math.rad(side * -18)))
-		add({ Shape = ball, Size = Vector3.new(1.6, 1.6, 1.6), Color = hair }, CFrame.new(side * 5, 38, -5))
-		add({ Shape = ball, Size = Vector3.new(3, 3, 3), Color = skin }, CFrame.new(side * 6.6, 39, 0))
-	end
-	add({ Size = Vector3.new(5, 1, 1), Color = Color3.fromRGB(130, 40, 40) }, CFrame.new(0, 34.8, -5.6))
-
-	-- A tall puffy chef's hat.
-	add({ Shape = cylinder, Size = Vector3.new(5, 12, 12), Color = white }, CFrame.new(0, 45.5, 0) * upright)
-	add({ Shape = cylinder, Size = Vector3.new(1, 12.4, 12.4), Color = cream }, CFrame.new(0, 43.6, 0) * upright)
-	add({ Shape = cylinder, Size = Vector3.new(6, 14, 14), Color = white }, CFrame.new(0, 50, 0) * upright)
-	add({ Shape = ball, Size = Vector3.new(15, 15, 15), Color = white }, CFrame.new(0, 54, 0))
-	for _, angle in { 0, 120, 240 } do
-		local a = math.rad(angle)
-		add({ Shape = ball, Size = Vector3.new(8, 8, 8), Color = white }, CFrame.new(math.cos(a) * 5, 57, math.sin(a) * 5))
-	end
-
-	-- His other arm stays out to the side with a frying pan.
-	add({ Shape = ball, Size = Vector3.new(6, 6, 6), Color = white }, CFrame.new(-9.5, 26, 0))
-	add({ Size = Vector3.new(4.6, 12, 4.6), Color = white }, CFrame.new(-12.4, 21.5, -2.5) * CFrame.Angles(math.rad(40), 0, math.rad(-22)))
-	add({ Shape = ball, Size = Vector3.new(5, 5, 5), Color = skin }, CFrame.new(-14.8, 16.5, -7))
-	add({ Size = Vector3.new(1.4, 1.4, 8), Color = black }, CFrame.new(-14.8, 17, -11.4))
-	add({ Shape = cylinder, Size = Vector3.new(1.2, 13, 13), Color = black }, CFrame.new(-14.8, 17, -20.5) * upright)
-	add({ Shape = cylinder, Size = Vector3.new(1.3, 11, 11), Color = steel }, CFrame.new(-14.8, 17.1, -20.5) * upright)
-
-	-- The throwing arm.
-	add({ Shape = ball, Size = Vector3.new(6, 6, 6), Color = white }, CFrame.new(0, 0, 0), "arm")
-	add({ Size = Vector3.new(4.6, 12, 4.6), Color = white }, CFrame.new(0, -6.5, 0), "arm")
-	add({ Size = Vector3.new(5, 1.2, 5), Color = cream }, CFrame.new(0, -12, 0), "arm")
-	add({ Shape = ball, Size = Vector3.new(5, 5, 5), Color = skin }, CFrame.new(0, -14.4, 0), "arm")
-
+	add("Chef_Body")
+	add("Chef_Arm", "arm")
 	model.Parent = workspace
 end
 

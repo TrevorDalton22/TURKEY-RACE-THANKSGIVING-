@@ -1,6 +1,6 @@
 -- Puts the pieces modeled in Blender (assets/props) on every map: item boxes, boost pads, start marks and track items.
 -- The old blocks stay where they are, invisible, as the collision, so racing around them hasn't changed. Everything
--- new is scenery. Run this after importing asset 106245382635523 as ReplicatedStorage.TrackProps; see Kit.luau for how.
+-- new is scenery. Run this after importing asset 106245382635523 as ReplicatedStorage.TrackPropsImport; see Kit.luau for how.
 
 local Kit = loadstring(game:GetService("ServerScriptService").Server.MapBuilders.Kit.Source)()
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -16,14 +16,20 @@ local GLOW_COLORS = {
 	BoostPad_Chevron_Glow = rgb(255, 150, 40),
 }
 
--- The import is a Model of Models, each holding one mesh. This flattens it into a folder of meshes named after each
--- piece, without the package link, and sets them up as scenery.
+-- The import is a Model of Models, each holding one mesh. This flattens it into the TrackProps folder of meshes named
+-- after each piece, without the package link, and sets them up as scenery. Anything else in the folder (the chef's
+-- meshes, from assets/lowpoly) stays. With no import waiting, it just uses what's in the folder.
 local function prepareTemplates(): Folder
-	local source = ReplicatedStorage:WaitForChild("TrackProps")
-	if source:IsA("Folder") then
-		return source
+	local folder = ReplicatedStorage:FindFirstChild("TrackProps")
+	local source = ReplicatedStorage:FindFirstChild("TrackPropsImport")
+	if not source then
+		return folder
 	end
-	local folder = Instance.new("Folder")
+	if not folder then
+		folder = Instance.new("Folder")
+		folder.Name = "TrackProps"
+		folder.Parent = ReplicatedStorage
+	end
 	local bodyY, glowY
 	for _, model in source:GetChildren() do
 		local mesh = model:FindFirstChildWhichIsA("MeshPart", true)
@@ -49,14 +55,16 @@ local function prepareTemplates(): Folder
 				mesh.Color = GLOW_COLORS[model.Name]
 				mesh.CastShadow = false
 			end
+			local old = folder:FindFirstChild(model.Name)
+			if old then
+				old:Destroy()
+			end
 			mesh.Parent = folder
 		end
 	end
 	-- The body's mesh is centered with its feathers in, so its middle is above the middle of the box.
 	folder.ItemBox_Body:SetAttribute("OffsetY", bodyY - glowY)
 	source:Destroy()
-	folder.Name = "TrackProps"
-	folder.Parent = ReplicatedStorage
 	return folder
 end
 
@@ -200,7 +208,8 @@ local function dinnerDash(map: Instance)
 	itemBoxes(map)
 	boostPads(map, {
 		{ 175, 470, 0, 1 },
-		{ -55, 605, -1, 0 },
+		-- Just before the gap in the table at x -60 to -48, so it helps you across.
+		{ -20, 605, -1, 0 },
 		{ -175, 430, 0, -1 },
 		{ 95, 395, 1, 0 },
 	})

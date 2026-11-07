@@ -1120,8 +1120,8 @@ def make_object(name, part, material, collection, location):
     mesh.update()
     mesh.materials.append(material)
     uv_layer = mesh.uv_layers.new(name="UVMap")
-    for polygon, (_, color, smooth) in zip(mesh.polygons, part.faces):
-        polygon.use_smooth = smooth
+    for polygon, (_, color, _) in zip(mesh.polygons, part.faces):
+        polygon.use_smooth = False  # everything's flat shaded, to match the low-poly rooms in assets/lowpoly
         uv = swatch_uv(color)
         for loop_index in polygon.loop_indices:
             uv_layer.data[loop_index].uv = uv

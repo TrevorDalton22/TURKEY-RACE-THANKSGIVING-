@@ -59,7 +59,6 @@ local Config = {
 	-- The chef stands in the middle of the map and throws food at the turkeys.
 	Chef = {
 		StartsAtSeconds = 8, -- seconds after GO; a map can override this with a ChefStartsAt attribute
-		Scale = 1.5,
 		-- Seconds between throws, shortened by CrowdSpeedup for each racer after the first.
 		ThrowSeconds = 2.6,
 		CrowdSpeedup = 0.2,
