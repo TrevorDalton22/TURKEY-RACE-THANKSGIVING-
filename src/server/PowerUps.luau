@@ -11,10 +11,14 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local TrackProps = require(ReplicatedStorage.Shared.TrackProps)
 local Track = require(script.Parent.Track)
 local Sfx = require(script.Parent.Sfx)
+local Stats = require(script.Parent.Stats)
 
 local Remotes = ReplicatedStorage.Remotes
 local defs = Config.PowerUps
 local KINDS = { "DrumstickDash", "PieLauncher", "ButterSlide", "GobbleBomb", "MashedPotatoShield", "CornTornado" }
+-- What a Power-Up Starter (a Robux product) can hand out at GO: anything but the Drumstick Dash, so speed is
+-- never something you buy.
+local STARTER_KINDS = { "PieLauncher", "ButterSlide", "GobbleBomb", "MashedPotatoShield", "CornTornado" }
 
 local TORNADO_STEER_SPEED = 30
 
@@ -467,6 +471,15 @@ function PowerUps.begin(raceRacers)
 	racers = raceRacers
 	for _, box in Track.ItemBoxes do
 		setBox(box, true)
+	end
+	-- Racers with Power-Up Starters left begin holding one, if their slot is empty.
+	for player in racers do
+		if (player:GetAttribute("PowerUp") or "") == "" and Stats.useStarter(player) then
+			local kind = STARTER_KINDS[math.random(#STARTER_KINDS)]
+			player:SetAttribute("PowerUp", kind)
+			Remotes.Notify:FireClient(player, `🎁 Starter power-up: {defs[kind].Icon} {defs[kind].Name}! Press E`)
+			Sfx.to(player, "Pickup")
+		end
 	end
 	table.insert(connections, Remotes.UsePowerUp.OnServerEvent:Connect(function(player)
 		local kind = player:GetAttribute("PowerUp")

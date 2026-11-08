@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local Featured = require(ReplicatedStorage.Shared.Featured)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Season = require(ReplicatedStorage.Shared.Season)
 local Skins = require(ReplicatedStorage.Shared.Skins)
@@ -70,6 +71,10 @@ local function priceText(skin, owned: { [string]: boolean }, prices): (string, C
 		return Purchases.label(prices[skin.Id], Config.Robux.Skins[skin.Id] or 0), Color3.fromRGB(120, 235, 160)
 	elseif source == "Pass" then
 		return `🎟️ Pass tier {passTier[skin.Id] or "?"}`, Color3.fromRGB(215, 160, 255)
+	end
+	local price = Featured.price(skin, workspace:GetServerTimeNow())
+	if price < skin.Price then
+		return `🔥 {Format.FEATHER} {Format.number(price)} TODAY`, Ui.GOLD
 	end
 	return `{Format.FEATHER} {Format.number(skin.Price)}`, Ui.CREAM
 end

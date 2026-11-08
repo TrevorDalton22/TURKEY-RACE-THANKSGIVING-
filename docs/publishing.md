@@ -22,7 +22,7 @@ Thanksgiving is **Thursday, November 26, 2026**. Publish privately first, test w
 - **Saving:** join from the Roblox website (not Studio). Finish a race, leave, rejoin: your feathers should still be there.
 - **Wins board:** the lobby board should say **"All servers"**. In Studio it says "This server".
 - **Multiplayer:** in Studio, go to **Test → Clients and Servers**, pick 3 players and press Start. Race once and check the places, results and the chef.
-- **Phone:** in Studio, go to **Test → Device** and pick a phone. Check that the Sprint, Slide, Use and Gobble buttons and the HUD fit on screen.
+- **Phone:** in Studio, go to **Test → Device** and pick a phone. Check that the big Sprint, Slide, Use and Gobble buttons sit around the jump button without covering it, that holding Sprint gallops, and that the HUD and shop fit on screen.
 
 ## 4. Creator Hub (create.roblox.com → your experience)
 
@@ -38,33 +38,43 @@ Thanksgiving is **Thursday, November 26, 2026**. Publish privately first, test w
 
 ## 5. Robux items
 
-The shop and Harvest Pass are already built. Each Robux item just needs to be created on the Creator Hub, with its id pasted into `Config.Robux` in [src/shared/Config.luau](../src/shared/Config.luau). Until then the item shows as **Coming soon**.
+The shop, Harvest Pass and everything they sell are already built. Each Robux item just needs to be created on Roblox, with its id pasted into `ROBUX_IDS` at the top of [src/shared/Config.luau](../src/shared/Config.luau). Until then the item shows as **Coming soon**.
 
-On create.roblox.com, open your experience and go to **Monetization**.
+**An item's id only works in the experience it was created in.** So each item is created twice: on the private work copy (GameId 10774869273), where Studio's test purchases are free, and on the real game (GameId 10774782857) when it's published. `ROBUX_IDS` has a set for each, and the game picks the right one by itself.
 
-**Passes** (bought once, owned forever). For each one, click **Create a Pass**, add an image, name and description, then turn on **Item for Sale** and set the price:
+On create.roblox.com, open the experience and go to **Monetization**. Icons for every item are in [assets/ui/export/items](../assets/ui/export/items) (made by `assets/ui/build_ui_art.py`).
 
-| Pass | Goes in | Suggested price |
-|---|---|---|
-| Harvest Pass Premium | `PremiumPass` | 199 |
-| Rainbow Turkey | `Skins.Rainbow` | 149 |
-| Galaxy Turkey | `Skins.Galaxy` | 249 |
-| Diamond Turkey | `Skins.Diamond` | 299 |
+**Passes** (bought once, owned forever). For each one, click **Create a Pass**, add the icon, name and description, then turn on **Item for Sale** and set the price:
+
+| Pass | Icon | Goes in | Price |
+|---|---|---|---|
+| Harvest Pass Premium | `premium_pass.png` | `PremiumPass` | 199 |
+| VIP: 2x Feathers from every race, a VIP tag in chat and over your turkey, a golden trail | `vip.png` | `VipPass` | 299 |
+| Rainbow Turkey | `skin_rainbow.png` | `Skins.Rainbow` | 149 |
+| Galaxy Turkey | `skin_galaxy.png` | `Skins.Galaxy` | 249 |
+| Diamond Turkey | `skin_diamond.png` | `Skins.Diamond` | 299 |
 
 **Developer Products** (can be bought again and again). Create each one with a name, description, icon and price:
 
-| Product | Goes in | Suggested price |
-|---|---|---|
-| 2x XP for 30 minutes | `XpBoosts[1].Id` | 29 |
-| 2x XP for 2 hours | `XpBoosts[2].Id` | 79 |
+| Product | Icon | Goes in | Price |
+|---|---|---|---|
+| 2x XP for 30 minutes | `xp_30m.png` | `XpBoosts[1]` | 29 |
+| 2x XP for 2 hours | `xp_2h.png` | `XpBoosts[2]` | 79 |
+| 300 Feathers | `feathers_300.png` | `FeatherPacks[1]` | 25 |
+| 1,000 Feathers | `feathers_1000.png` | `FeatherPacks[2]` | 75 |
+| 3,000 Feathers | `feathers_3000.png` | `FeatherPacks[3]` | 199 |
+| Power-Up Starter: 5 races start with a power-up in hand | `starter_5.png` | `Starters[1]` | 39 |
+| Power-Up Starter: 15 races | `starter_15.png` | `Starters[2]` | 99 |
+
+A Power-Up Starter never hands out the Drumstick Dash, so nobody buys speed, and only fills an empty slot at GO.
 
 Then:
 
-1. Copy each id from the item's page, using **Copy Asset ID** or the number in the address bar, and paste it into Config.
+1. Copy each id from the item's page, using **Copy Asset ID** or the number in the address bar, and paste it into that experience's set in `ROBUX_IDS`.
 2. Commit, then **File → Publish to Roblox** so the live game has the ids.
-3. Test in Studio: buying shows a **test purchase** dialog and you aren't charged. Check that the skin unlocks, premium pays out the rewards you've already reached, and the boost timer appears.
+3. Test in Studio: buying shows a **test purchase** dialog and you aren't charged. Check that the skin unlocks, premium pays out the rewards you've already reached, the boost timer appears, Feather packs add Feathers, VIP shows its tag and trail and doubles a race's Feathers, and a starter puts a power-up in your slot at GO.
 
-For pass images, a screenshot of the skin's card in the shop works well.
+Claude can create the items itself if the Studio Assistant has the Open Cloud permissions `game-pass:write` and `developer-product:write` (Assistant → MCP Permissions).
 
 The prices are suggestions; change them on the Creator Hub any time and the shop shows the new price automatically. To change what the pass gives, edit [src/shared/Season.luau](../src/shared/Season.luau). Changing its `Id` starts a new season, which resets everyone's pass progress; levels and skins are kept. A new season also needs a new Premium pass id, or last season's buyers get the new premium track free.
 

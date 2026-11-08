@@ -10,9 +10,12 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local Featured = require(ReplicatedStorage.Shared.Featured)
 local Format = require(ReplicatedStorage.Shared.Format)
+local Skins = require(ReplicatedStorage.Shared.Skins)
 local Ui = require(script.Parent.Ui)
 local Cutscene = require(script.Parent.Cutscene)
+local Shop = require(script.Parent.Shop)
 
 local Remotes = ReplicatedStorage.Remotes
 local player = Players.LocalPlayer
@@ -66,9 +69,15 @@ function Hud.start(controls)
 		Position = UDim2.new(0, 14, 0.5, -12),
 		Size = UDim2.fromOffset(150, 42),
 	})
+	Ui.icon(feathersPill, "feather", {
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.new(0, -6, 0.5, 0),
+		Size = UDim2.fromOffset(46, 46),
+		ZIndex = 2,
+	})
 	local feathersLabel = label(feathersPill, {
-		Position = UDim2.new(0, 10, 0, 6),
-		Size = UDim2.new(1, -20, 1, -12),
+		Position = UDim2.new(0, 40, 0, 6),
+		Size = UDim2.new(1, -50, 1, -12),
 		TextColor3 = Ui.CREAM,
 	})
 
@@ -141,7 +150,7 @@ function Hud.start(controls)
 		Size = UDim2.fromOffset(124, 140),
 		Visible = false,
 	})
-	local slotIcon = label(slot, { Position = UDim2.new(0.15, 0, 0, 8), Size = UDim2.new(0.7, 0, 0.5, 0), TextStrokeTransparency = 1 })
+	local slotIcon = Ui.icon(slot, "star", { Position = UDim2.new(0.12, 0, 0, 6), Size = UDim2.new(0.76, 0, 0.52, 0) })
 	local slotName = label(slot, { Position = UDim2.new(0, 8, 0.56, 0), Size = UDim2.new(1, -16, 0.18, 0) })
 	local keycap = card(slot, {
 		AnchorPoint = Vector2.new(0.5, 1),
@@ -231,6 +240,57 @@ function Hud.start(controls)
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Parent = rows
 
+	-- Under the results: how close you are to the next skin, with a way to the shop.
+	local nudge = Ui.panel(results, {
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(0, 14, 1, -12),
+		Size = UDim2.new(1, -28, 0, 44),
+		BackgroundColor3 = Ui.DARK,
+	})
+	local nudgeLabel = label(nudge, {
+		Position = UDim2.new(0, 12, 0, 9),
+		Size = UDim2.new(1, -150, 1, -18),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextColor3 = Ui.CREAM,
+	})
+	local nudgeButton = Ui.button(nudge, {
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, -6, 0.5, 0),
+		Size = UDim2.fromOffset(120, 36),
+		BackgroundColor3 = Ui.GREEN,
+		Text = "SHOP",
+	})
+	local nudgeSkin: string? = nil
+	nudgeButton.Activated:Connect(function()
+		results.Visible = false
+		Shop.open(nudgeSkin)
+	end)
+
+	-- The cheapest Feathers skin you don't own yet, and what it costs you today.
+	local function updateNudge(): boolean
+		local owned = {}
+		for id in string.gmatch(player:GetAttribute("OwnedSkins") or "", "[^,]+") do
+			owned[id] = true
+		end
+		local leaderstats = player:FindFirstChild("leaderstats")
+		local have = if leaderstats then leaderstats.Feathers.Value else 0
+		local best, bestPrice = nil, math.huge
+		for _, skin in Skins.List do
+			local price = if Skins.source(skin) == "Feathers" then Featured.price(skin, workspace:GetServerTimeNow()) else math.huge
+			if not owned[skin.Id] and price < bestPrice then
+				best, bestPrice = skin, price
+			end
+		end
+		if not best then
+			return false
+		end
+		nudgeSkin = best.Id
+		nudgeLabel.Text = if have >= bestPrice
+			then `🦃 You can buy the {best.Name} now!`
+			else `{Format.number(bestPrice - have)} more {Format.FEATHER} for the {best.Name}`
+		return true
+	end
+
 	local function resultRow(entry)
 		local mine = entry.UserId == player.UserId
 		local row = Ui.panel(rows, {
@@ -291,10 +351,11 @@ function Hud.start(controls)
 		for _, entry in list do
 			resultRow(entry)
 		end
-		-- As tall as the rows need.
-		results.Size = UDim2.fromOffset(520, 84 + #list * 46)
 		task.delay(holdBack, function()
 			if token == resultsToken then
+				-- As tall as the rows need, plus the nudge when there's a skin left to buy.
+				nudge.Visible = updateNudge()
+				results.Size = UDim2.fromOffset(520, 84 + #list * 46 + (if nudge.Visible then 54 else 0))
 				results.Visible = true
 				Ui.pop(results, 0.8)
 			end
@@ -381,14 +442,16 @@ function Hud.start(controls)
 			staminaFill.Visible = fraction > 0.02
 			local low = fraction < 0.3
 			staminaFill.BackgroundColor3 = if low then LOW_STAMINA else Ui.GOLD
-			staminaBar.Border.Color = if low and os.clock() % 0.5 < 0.25 then LOW_STAMINA else Ui.darker(Ui.DARK)
+			staminaBar.Border.Color = LOW_STAMINA
+			staminaBar.Border.Transparency = if low and os.clock() % 0.5 < 0.25 then 0 else 1
 		end
 
 		local kind = player:GetAttribute("PowerUp")
 		local def = kind and Config.PowerUps[kind]
-		slot.Visible = def ~= nil
+		-- On touch screens the Use button shows the power-up instead (client/TouchButtons).
+		slot.Visible = def ~= nil and (UserInputService.KeyboardEnabled or not UserInputService.TouchEnabled)
 		if def and kind ~= lastPowerUp then
-			slotIcon.Text = def.Icon
+			Ui.setIcon(slotIcon, Ui.POWER_ICONS[kind] or "star")
 			slotName.Text = def.Name
 			slot.BackgroundColor3 = POWER_COLORS[kind] or Ui.DARK
 			Ui.pop(slot, 0.4)
@@ -397,7 +460,7 @@ function Hud.start(controls)
 
 		local leaderstats = player:FindFirstChild("leaderstats")
 		local feathers = leaderstats and leaderstats:FindFirstChild("Feathers")
-		feathersLabel.Text = `{Format.FEATHER} {Format.number(if feathers then feathers.Value else 0)}`
+		feathersLabel.Text = Format.number(if feathers then feathers.Value else 0)
 
 		-- Out of the way while the shop, pass or settings window is open.
 		local windowOpen = false

@@ -152,6 +152,23 @@ local function faceForward()
 	camera.CFrame = CFrame.lookAt(root.Position - look * distance + Vector3.new(0, distance * 0.35, 0), root.Position)
 end
 
+-- For the touch buttons (client/TouchButtons).
+function Controls.setSprint(held: boolean)
+	sprintHeld = held
+end
+
+function Controls.slide()
+	onSlide(nil, Enum.UserInputState.Begin)
+end
+
+function Controls.use()
+	onUse(nil, Enum.UserInputState.Begin)
+end
+
+function Controls.gobble()
+	onGobble(nil, Enum.UserInputState.Begin)
+end
+
 function Controls.start()
 	-- Racers are placed on their start pads just before the countdown; give that a moment to arrive.
 	ReplicatedStorage:GetAttributeChangedSignal("Phase"):Connect(function()
@@ -160,14 +177,18 @@ function Controls.start()
 		end
 	end)
 
-	ContextActionService:BindAction("TurkeySprint", onSprint, true, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL3)
-	ContextActionService:BindAction("TurkeySlide", onSlide, true, Enum.KeyCode.Q, Enum.KeyCode.ButtonB)
-	ContextActionService:BindAction("TurkeyUse", onUse, true, Enum.KeyCode.E, Enum.KeyCode.ButtonX)
-	ContextActionService:BindAction("TurkeyGobble", onGobble, true, Enum.KeyCode.G, Enum.KeyCode.ButtonY)
-	ContextActionService:SetTitle("TurkeySprint", "Sprint")
-	ContextActionService:SetTitle("TurkeySlide", "Slide")
-	ContextActionService:SetTitle("TurkeyUse", "Use")
-	ContextActionService:SetTitle("TurkeyGobble", "Gobble")
+	-- Touch screens get the big buttons from client/TouchButtons instead of ContextActionService's small ones.
+	local touchButtons = not UserInputService.TouchEnabled
+	ContextActionService:BindAction("TurkeySprint", onSprint, touchButtons, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL3)
+	ContextActionService:BindAction("TurkeySlide", onSlide, touchButtons, Enum.KeyCode.Q, Enum.KeyCode.ButtonB)
+	ContextActionService:BindAction("TurkeyUse", onUse, touchButtons, Enum.KeyCode.E, Enum.KeyCode.ButtonX)
+	ContextActionService:BindAction("TurkeyGobble", onGobble, touchButtons, Enum.KeyCode.G, Enum.KeyCode.ButtonY)
+	if touchButtons then
+		ContextActionService:SetTitle("TurkeySprint", "Sprint")
+		ContextActionService:SetTitle("TurkeySlide", "Slide")
+		ContextActionService:SetTitle("TurkeyUse", "Use")
+		ContextActionService:SetTitle("TurkeyGobble", "Gobble")
+	end
 
 	UserInputService.JumpRequest:Connect(onJumpRequest)
 	Remotes.Knockback.OnClientEvent:Connect(onKnockback)

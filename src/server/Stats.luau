@@ -1,8 +1,9 @@
 -- Everything saved about a player, in a DataStore once the place is published:
 --   leaderstats  Level, Wins and Feathers (the player list shows these)
 --   skins        owned skin ids, published to clients as the attributes Skin (equipped) and OwnedSkins
---   profile      XP, Harvest Pass progress, XP boost time and recent Robux receipts (see Profile);
---                Progression and Robux work with it and publish what clients need
+--   profile      XP, Harvest Pass progress, XP boost time, Power-Up Starters left and recent Robux receipts
+--                (see Profile); Progression and Robux work with it and publish what clients need. Starters
+--                left is published here, as the attribute Starters.
 --   settings     music and sound effects on or off, as the attributes MusicOn and SfxOn (nil means on);
 --                clients change them through Remotes.Settings
 -- Changes are saved a moment later in one go (saveSoon), and when the player leaves.
@@ -22,6 +23,7 @@ export type Profile = {
 	FreeClaimed: number, -- highest pass tier whose free reward has been granted
 	PremiumClaimed: number, -- same for premium rewards
 	BoostUntil: number, -- os.time() when the XP boost runs out
+	Starters: number, -- races left that start with a power-up already in hand (a Robux product)
 	Receipts: { string }, -- recent Robux purchase ids, so no purchase is ever granted twice
 }
 
@@ -75,6 +77,11 @@ local function publishSkins(player: Player)
 	player:SetAttribute("OwnedSkins", table.concat(ids, ","))
 end
 
+local function publishStarters(player: Player)
+	local profile = profiles[player]
+	player:SetAttribute("Starters", if profile then profile.Starters else 0)
+end
+
 -- Returns whether the data is safely stored.
 local function save(player: Player): boolean
 	local leaderstats = player:FindFirstChild("leaderstats")
@@ -98,6 +105,7 @@ local function save(player: Player): boolean
 		Xp = profile.Xp,
 		Season = { Id = Season.Id, Xp = profile.SeasonXp, Free = profile.FreeClaimed, Premium = profile.PremiumClaimed },
 		BoostUntil = profile.BoostUntil,
+		Starters = profile.Starters,
 		Receipts = profile.Receipts,
 		Settings = settings,
 	}
@@ -128,8 +136,9 @@ local function load(player: Player)
 	owned[player] = { [Skins.Default] = true }
 	player:SetAttribute("Skin", Skins.Default)
 	publishSkins(player)
-	local profile: Profile = { Xp = 0, SeasonXp = 0, FreeClaimed = 0, PremiumClaimed = 0, BoostUntil = 0, Receipts = {} }
+	local profile: Profile = { Xp = 0, SeasonXp = 0, FreeClaimed = 0, PremiumClaimed = 0, BoostUntil = 0, Starters = 0, Receipts = {} }
 	profiles[player] = profile
+	publishStarters(player)
 
 	if store then
 		local success, data = attempt(store.GetAsync, tostring(player.UserId))
@@ -153,6 +162,8 @@ local function load(player: Player)
 				publishSkins(player)
 				profile.Xp += data.Xp or 0
 				profile.BoostUntil = math.max(profile.BoostUntil, data.BoostUntil or 0)
+				profile.Starters += data.Starters or 0
+				publishStarters(player)
 				profile.Receipts = data.Receipts or {}
 				-- Unless the player already changed it while their data was loading.
 				for name, attribute in SETTINGS do
@@ -252,6 +263,33 @@ function Stats.add(player: Player, feathers: number, wins: number)
 	leaderstats.Feathers.Value += feathers
 	leaderstats.Wins.Value += wins
 	Stats.saveSoon(player)
+end
+
+-- Adds Power-Up Starter races (a Robux purchase). Returns a function that takes them back again, for when
+-- the purchase can't be saved.
+function Stats.addStarters(player: Player, races: number): () -> ()
+	local profile = profiles[player]
+	if not profile then
+		return function() end
+	end
+	profile.Starters += races
+	publishStarters(player)
+	return function()
+		profile.Starters = math.max(0, profile.Starters - races)
+		publishStarters(player)
+	end
+end
+
+-- Uses up one Power-Up Starter race; returns whether there was one.
+function Stats.useStarter(player: Player): boolean
+	local profile = profiles[player]
+	if not profile or profile.Starters <= 0 then
+		return false
+	end
+	profile.Starters -= 1
+	publishStarters(player)
+	Stats.saveSoon(player)
+	return true
 end
 
 function Stats.setLevel(player: Player, level: number)

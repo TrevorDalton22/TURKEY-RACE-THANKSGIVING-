@@ -276,6 +276,9 @@ local function runRace(mode: string, joined: { Player }): (any, { Player })
 			feathers += Config.Rewards.Finish + (Config.Rewards.Places[place] or 0)
 			xp += xpRules.Finish + (xpRules.Places[place] or 0)
 		end
+		if player:GetAttribute("Vip") == true then
+			feathers *= Config.Vip.FeatherMultiplier
+		end
 		Stats.add(player, feathers, if place == 1 and r.finishTime then 1 else 0)
 		local onPodium = not r.cooked and #podium < 3
 		if onPodium then

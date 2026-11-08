@@ -85,6 +85,26 @@ local function mount(character: Model, skinId: string?)
 		TurkeyModel.addSparkle(glitter, skin.Sparkle)
 		glitter.Parent = model
 	end
+
+	-- VIPs leave a golden ribbon behind their turkey.
+	local player = Players:GetPlayerFromCharacter(character)
+	if player and player:GetAttribute("Vip") == true then
+		local tail = hiddenPart("VipTrail", Vector3.one * 0.2)
+		weld(mesh, tail, groundToMesh * CFrame.new(TurkeyModel.BodyCenter + Vector3.new(0, 0, 2.6)), "Weld")
+		local top, bottom = Instance.new("Attachment"), Instance.new("Attachment")
+		top.Position, bottom.Position = Vector3.new(0, 1.3, 0), Vector3.new(0, -1.3, 0)
+		top.Parent, bottom.Parent = tail, tail
+		local trail = Instance.new("Trail")
+		trail.Attachment0, trail.Attachment1 = top, bottom
+		trail.Color = ColorSequence.new(Color3.fromRGB(255, 212, 80), Color3.fromRGB(255, 244, 200))
+		trail.Transparency = NumberSequence.new(0.15, 1)
+		trail.WidthScale = NumberSequence.new(1, 0.25)
+		trail.Lifetime = 0.45
+		trail.MinLength = 0.1
+		trail.LightEmission = 0.5
+		trail.Parent = tail
+		tail.Parent = model
+	end
 	model.Parent = character
 end
 
@@ -100,6 +120,7 @@ function Mount.start()
 			mount(character, player:GetAttribute("Skin"))
 		end)
 		player:GetAttributeChangedSignal("Skin"):Connect(remount)
+		player:GetAttributeChangedSignal("Vip"):Connect(remount) -- for the VIP trail
 		remount()
 	end
 	Players.PlayerAdded:Connect(watch)

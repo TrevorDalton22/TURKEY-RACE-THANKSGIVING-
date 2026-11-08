@@ -3,6 +3,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Featured = require(ReplicatedStorage.Shared.Featured)
 local Format = require(ReplicatedStorage.Shared.Format)
 local Skins = require(ReplicatedStorage.Shared.Skins)
 local Stats = require(script.Parent.Stats)
@@ -31,11 +32,13 @@ local function handle(player: Player, action: unknown, skinId: unknown): (boolea
 		elseif source == "Pass" then
 			return false, "That skin is a Harvest Pass reward"
 		end
-		local missing = skin.Price - Stats.feathers(player)
+		-- The skin of the day is cheaper.
+		local price = Featured.price(skin, os.time())
+		local missing = price - Stats.feathers(player)
 		if missing > 0 then
 			return false, `You need {missing} more {Format.FEATHER}`
 		end
-		Stats.buySkin(player, skinId, skin.Price)
+		Stats.buySkin(player, skinId, price)
 		Stats.equip(player, skinId)
 		return true, `Bought {skin.Name}! 🦃`
 	end

@@ -35,7 +35,7 @@ function Settings.start()
 	gui.Parent = player:WaitForChild("PlayerGui")
 	Ui.autoScale(gui)
 
-	local openButton = Ui.menuButton(gui, 3, "⚙️", "SETTINGS", Ui.BLUE)
+	local openButton = Ui.menuButton(gui, 3, "gear", "SETTINGS", Ui.BLUE)
 	local window, body, setOpen = Ui.window(gui, "⚙️ SETTINGS", Ui.BLUE, UDim2.fromOffset(420, 320), Vector2.new(420, 320))
 
 	-- One row per setting: its label on the left, an ON/OFF switch on the right.

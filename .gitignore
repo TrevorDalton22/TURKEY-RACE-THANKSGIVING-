@@ -14,3 +14,6 @@ desktop.ini
 *.blend1
 assets/props/renders/
 assets/lowpoly/renders/
+
+# UI art previews and intermediate renders
+assets/ui/renders/

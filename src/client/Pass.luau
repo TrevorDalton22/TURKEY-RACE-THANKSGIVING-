@@ -52,7 +52,7 @@ function Pass.start()
 	gui.Parent = player:WaitForChild("PlayerGui")
 	Ui.autoScale(gui)
 
-	local openButton = Ui.menuButton(gui, 2, "🎟️", "PASS", Ui.PURPLE)
+	local openButton = Ui.menuButton(gui, 2, "ticket", "PASS", Ui.PURPLE)
 	local win, body, openWindow = Ui.window(gui, `🎟️ {string.upper(Season.Name)}`, Ui.PURPLE, UDim2.fromScale(0.9, 0.84), Vector2.new(780, 500))
 	setOpen = openWindow
 
