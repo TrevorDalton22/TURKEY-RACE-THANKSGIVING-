@@ -68,6 +68,11 @@ SKINS = {
 }
 
 
+# The Classic turkey has natural colors. Before that it had a bright yellow beak and orange feet, which the other
+# skins keep unless they set their own.
+CARTOON = {"beak": (255, 187, 34), "beak_dark": (242, 146, 15), "foot": (255, 140, 18), "foot_dark": (229, 110, 6)}
+
+
 def base_rgb(name):
     h = PALETTE[name][0]
     return tuple(int(h[k : k + 2], 16) for k in (0, 2, 4))
@@ -129,6 +134,9 @@ def palette_for(skin):
         put("neck", mix(wattle, head, 0.35))
         put("neck_dark", shade(pal["neck"], 0.8))
 
+    if skin:  # every skin but Classic
+        for name, color in CARTOON.items():
+            put(name, color)
     if "Wattle" in skin:
         put("wattle", skin["Wattle"])
         put("wattle_dark", shade(skin["Wattle"], 0.76))
@@ -178,7 +186,7 @@ def write_image(name, value_of, colorspace="sRGB"):
     print("wrote", name)
 
 
-for skin_id, skin in SKINS.items():
+for skin_id, skin in [("Classic", {})] + list(SKINS.items()):
     pal = palette_for(skin)
     write_image(f"T_Turkey_Skin_{skin_id}", lambda n: tuple(v / 255 for v in pal[n]) if n else (0.5, 0.5, 0.5))
 

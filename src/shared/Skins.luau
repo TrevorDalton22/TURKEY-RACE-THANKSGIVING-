@@ -27,7 +27,7 @@ Skins.Rarities = {
 --   Transparency: a see-through turkey (0..1)   Sparkle: glitter drifting off the body in this color
 --   Extra: a hat or other add-on, built in Skins.pieces
 Skins.List = {
-	{ Id = "Classic", Name = "Classic Turkey", Rarity = "Common", Price = 0, Palette = 89849573616148 },
+	{ Id = "Classic", Name = "Classic Turkey", Rarity = "Common", Price = 0, Palette = 119432043854645 }, -- natural colors since 2026-11-08
 	{ Id = "Cool", Name = "Cool Turkey", Rarity = "Common", Price = 100, Palette = 97003162040902, Extra = "Shades" },
 	{ Id = "Pilgrim", Name = "Pilgrim Turkey", Rarity = "Common", Price = 150, Palette = 86474545635084, Extra = "PilgrimHat" },
 	{ Id = "Lava", Name = "Lava Turkey", Rarity = "Rare", Price = 250, Palette = 81510312765905 },
