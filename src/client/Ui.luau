@@ -7,8 +7,16 @@
 -- hidden until something sets its color (a highlight), and a UICorner.
 
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local Ui = {}
+
+-- A phone: a touch screen too short for the normal layout (phones in landscape are about 400 points tall).
+-- Roblox's thumbstick covers the left side of a phone's screen below the top third, so menus keep clear of it.
+function Ui.isPhone(): boolean
+	local camera = workspace.CurrentCamera
+	return UserInputService.TouchEnabled and camera ~= nil and camera.ViewportSize.Y < 500
+end
 
 -- The palette: warm browns and cream with fall colors, like the maps.
 Ui.PANEL = Color3.fromRGB(92, 56, 34)
@@ -252,12 +260,14 @@ function Ui.button(parent: Instance, props): TextButton
 	return b
 end
 
--- A square menu tile down the left side of the screen, with a big icon and its name under it.
+-- A square menu tile down the left side of the screen, with a big icon and its name under it; on phones the
+-- tiles make a row along the top instead, under Roblox's buttons, clear of the thumbstick.
 -- order: its place in the stack from the top (1, 2, 3, ...). icon: a name from Ui.ICONS, or an emoji.
+Ui.PHONE_MENU_TOP = 96 -- where the phone row starts, below Roblox's buttons
 function Ui.menuButton(gui: ScreenGui, order: number, icon: string, text: string, color: Color3): TextButton
 	local b = Ui.button(gui, {
 		Name = "OpenButton",
-		Position = UDim2.new(0, 14, 0.5, (order - 1) * 90),
+		Position = if Ui.isPhone() then UDim2.new(0, 14 + (order - 1) * 88, 0, Ui.PHONE_MENU_TOP) else UDim2.new(0, 14, 0.5, (order - 1) * 90),
 		Size = UDim2.fromOffset(80, 80),
 		BackgroundColor3 = color,
 		Text = "",
@@ -297,16 +307,17 @@ function Ui.badge(parent: GuiObject): Frame
 	return dot
 end
 
--- Scales something up from small with a little bounce (things appearing).
+-- Scales something up from small with a little bounce (things appearing), to its BaseScale attribute (1 if unset).
 function Ui.pop(object: GuiObject, from: number?)
+	local base = object:GetAttribute("BaseScale") or 1
 	local scale = object:FindFirstChild("Pop") :: UIScale?
 	if not scale then
 		scale = Instance.new("UIScale")
 		scale.Name = "Pop"
 		scale.Parent = object
 	end
-	scale.Scale = from or 0.6
-	TweenService:Create(scale, POP, { Scale = 1 }):Play()
+	scale.Scale = (from or 0.6) * base
+	TweenService:Create(scale, POP, { Scale = base }):Play()
 end
 
 -- Every window's open/close function, so opening one closes the others.
@@ -331,9 +342,17 @@ function Ui.window(gui: ScreenGui, title: string, color: Color3, size: UDim2, ma
 	local limit = Instance.new("UISizeConstraint")
 	limit.MaxSize = maxSize
 	limit.Parent = window
-	local camera = workspace.CurrentCamera
-	if camera and camera.ViewportSize.Y < 500 then
-		window.Size = UDim2.fromScale(math.max(size.X.Scale, 0.96), math.max(size.Y.Scale, 0.92))
+	-- On a phone the big windows (sized by scale) fill most of the screen, below the status bar, and the small
+	-- ones (sized in pixels) are drawn a third bigger, so their buttons are easy to tap.
+	if Ui.isPhone() then
+		if size.X.Scale > 0 then
+			window.Position = UDim2.fromScale(0.5, 0.55)
+			window.Size = UDim2.fromScale(0.96, 0.86)
+			limit.MaxSize = Vector2.new(4000, 4000)
+		else
+			window:SetAttribute("BaseScale", 1.35)
+			window.Position = UDim2.fromScale(0.5, 0.55)
+		end
 	end
 
 	local header = Ui.card(window, {
@@ -370,6 +389,9 @@ function Ui.window(gui: ScreenGui, title: string, color: Color3, size: UDim2, ma
 	body.Size = UDim2.new(1, -32, 1, -86)
 	body.Parent = window
 
+	-- An open window covers every menu tile, its own screen's included (they're its siblings).
+	window.ZIndex = 10
+	local baseOrder = gui.DisplayOrder
 	local function setOpen(open: boolean)
 		if open then
 			for other, closeOther in windows do
@@ -377,10 +399,12 @@ function Ui.window(gui: ScreenGui, title: string, color: Color3, size: UDim2, ma
 					closeOther(false)
 				end
 			end
+			gui.DisplayOrder = 20
 			window.Visible = true
 			Ui.pop(window, 0.85)
 		else
 			window.Visible = false
+			gui.DisplayOrder = baseOrder
 		end
 	end
 	windows[window] = setOpen
@@ -405,6 +429,8 @@ function Ui.autoScale(gui: ScreenGui)
 	pcall(function()
 		gui.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
 	end)
+	-- Each panel's image is its first child at ZIndex 0, so it must stack within its panel, not across the screen.
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	local scale = Instance.new("UIScale")
 	scale.Name = "AutoScale"
 	scale.Parent = gui

@@ -56,6 +56,7 @@ function TouchButtons.start(controls)
 	gui.Name = "TurkeyTouchButtons"
 	gui.ResetOnSpawn = false
 	gui.DisplayOrder = 2
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.Parent = player:WaitForChild("PlayerGui")
 
 	local buttons = {}
@@ -115,6 +116,28 @@ function TouchButtons.start(controls)
 	player:GetAttributeChangedSignal("PowerUp"):Connect(refreshUse)
 	build()
 	refreshUse()
+
+	-- Shown only while Roblox's own touch controls are: they hide when a keyboard or gamepad takes over.
+	local function follow(touchGui: ScreenGui)
+		local function sync()
+			gui.Enabled = touchGui.Enabled
+			if not gui.Enabled then
+				controls.setSprint(false)
+			end
+		end
+		touchGui:GetPropertyChangedSignal("Enabled"):Connect(sync)
+		sync()
+	end
+	local playerGui = player.PlayerGui
+	local touchGui = playerGui:FindFirstChild("TouchGui")
+	if touchGui and touchGui:IsA("ScreenGui") then
+		follow(touchGui)
+	end
+	playerGui.ChildAdded:Connect(function(child)
+		if child.Name == "TouchGui" and child:IsA("ScreenGui") then
+			follow(child)
+		end
+	end)
 	-- Turning the phone changes which layout fits.
 	if workspace.CurrentCamera then
 		workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function()

@@ -36,7 +36,9 @@ function Settings.start()
 	Ui.autoScale(gui)
 
 	local openButton = Ui.menuButton(gui, 3, "gear", "SETTINGS", Ui.BLUE)
-	local window, body, setOpen = Ui.window(gui, "⚙️ SETTINGS", Ui.BLUE, UDim2.fromOffset(420, 320), Vector2.new(420, 320))
+	local window, body, setOpen = Ui.window(gui, "SETTINGS", Ui.BLUE, UDim2.fromOffset(420, 320), Vector2.new(420, 320))
+	Ui.icon(window.Header, "gear", { Position = UDim2.new(0, 8, 0, -4), Size = UDim2.fromOffset(52, 52), ZIndex = 2 })
+	window.Header.Title.Position = UDim2.new(0, 64, 0, 7)
 
 	-- One row per setting: its label on the left, an ON/OFF switch on the right.
 	local switches = {}
@@ -140,6 +142,14 @@ function Settings.start()
 
 	openButton.Activated:Connect(function()
 		setOpen(not window.Visible)
+	end)
+	-- Out of the way during races, like the shop and pass tiles; on phones it would sit under your steering thumb.
+	player:GetAttributeChangedSignal("Racing"):Connect(function()
+		local racing = player:GetAttribute("Racing") == true
+		openButton.Visible = not racing
+		if racing then
+			setOpen(false)
+		end
 	end)
 end
 

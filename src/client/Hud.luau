@@ -64,9 +64,10 @@ function Hud.start(controls)
 	local lapLabel = label(lapPill, { Position = UDim2.new(0, 10, 0, 5), Size = UDim2.new(1, -20, 1, -10) })
 
 	-- Lobby: Feathers, level and XP ------------------------------------------------------------------------
+	-- Above the menu tiles; on phones, at the end of their row along the top (see Ui.menuButton).
 	local feathersPill = card(gui, {
-		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.new(0, 14, 0.5, -12),
+		AnchorPoint = if Ui.isPhone() then Vector2.new(0, 0.5) else Vector2.new(0, 1),
+		Position = if Ui.isPhone() then UDim2.new(0, 14 + 3 * 88 + 16, 0, Ui.PHONE_MENU_TOP + 40) else UDim2.new(0, 14, 0.5, -12),
 		Size = UDim2.fromOffset(150, 42),
 	})
 	Ui.icon(feathersPill, "feather", {
@@ -448,8 +449,9 @@ function Hud.start(controls)
 
 		local kind = player:GetAttribute("PowerUp")
 		local def = kind and Config.PowerUps[kind]
-		-- On touch screens the Use button shows the power-up instead (client/TouchButtons).
-		slot.Visible = def ~= nil and (UserInputService.KeyboardEnabled or not UserInputService.TouchEnabled)
+		-- While the touch buttons are showing, their Use button shows the power-up instead (client/TouchButtons).
+		local touchButtons = gui.Parent:FindFirstChild("TurkeyTouchButtons")
+		slot.Visible = def ~= nil and not (touchButtons and touchButtons.Enabled)
 		if def and kind ~= lastPowerUp then
 			Ui.setIcon(slotIcon, Ui.POWER_ICONS[kind] or "star")
 			slotName.Text = def.Name
