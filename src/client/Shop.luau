@@ -69,14 +69,20 @@ local function ownedSkins(): { [string]: boolean }
 	return set
 end
 
--- Outlined cream text, the shop's look. props as for Ui.label, plus Thick: the outline's thickness.
+-- Outlined cream text, the shop's look. props as for Ui.label, plus Thick: the outline's thickness, and Max: the
+-- largest the text may grow (so a wide box on a phone doesn't blow a description up past its title).
 local function text(parent: Instance, props): TextLabel
-	local thick = props.Thick or 2.5
-	props.Thick = nil
+	local thick, max = props.Thick or 2.5, props.Max
+	props.Thick, props.Max = nil, nil
 	props.TextColor3 = props.TextColor3 or CREAM
 	local l = Ui.label(parent, props)
 	l.Outline.Color = Ui.BARN_OUTLINE
 	l.Outline.Thickness = thick
+	if max then
+		local limit = Instance.new("UITextSizeConstraint")
+		limit.MaxTextSize = max
+		limit.Parent = l
+	end
 	return l
 end
 
@@ -153,7 +159,8 @@ function Shop.start(passApi)
 	plaque.Title.Outline.Color = Ui.BARN_OUTLINE
 	plaque.Title.ZIndex = 5
 	for _, deco in {
-		{ "pumpkin", UDim2.new(0, -26, 0, -24), 66 },
+		-- On phones the top corner is under Roblox's own buttons.
+		{ "pumpkin", if Ui.isPhone() then UDim2.new(0, -26, 0.2, 0) else UDim2.new(0, -26, 0, -24), 66 },
 		{ "maple_leaf", UDim2.new(1, -36, 0.3, 0), 52 },
 		{ "corn", UDim2.new(0, -30, 0.46, 0), 56 },
 		{ "oak_leaf", UDim2.new(1, -24, 0.7, 0), 50 },
@@ -297,6 +304,7 @@ function Shop.start(passApi)
 		Position = UDim2.new(0, 124, 0, 86),
 		Size = UDim2.new(1, -310, 0, 36),
 		TextWrapped = true,
+		Max = 18,
 		Text = `Feathers for the whole server for {feast.Minutes} minutes!`,
 	})
 	robuxButton(banner, {
@@ -340,14 +348,14 @@ function Shop.start(passApi)
 		local slot = Instance.new("Frame")
 		slot.BackgroundTransparency = 1
 		slot.LayoutOrder = itemOrder
-		slot.Size = UDim2.new(0.27, 0, 1, 0)
+		slot.Size = UDim2.new(0, 96, 1, 0)
 		slot.Parent = items
 		build(slot)
 		return text(slot, { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, 0), Size = UDim2.new(1, 0, 0, 22), Text = caption })
 	end
 	local function plus()
 		itemOrder += 1
-		text(items, { LayoutOrder = itemOrder, Size = UDim2.new(0.06, 0, 0, 30), Text = "+" })
+		text(items, { LayoutOrder = itemOrder, Size = UDim2.new(0, 22, 0, 30), Text = "+" })
 	end
 	local skinCaption = bundleItem(function(slot)
 		table.insert(cameras, turkeyPreview(slot, bundleSkin, { Size = UDim2.new(1, 0, 1, -22) }))
@@ -480,8 +488,8 @@ function Shop.start(passApi)
 	} do
 		local c = cell(passes, i, 2, CARD)
 		Ui.icon(c, pass.Icon, { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 2), Size = UDim2.fromOffset(72, 72), ZIndex = 2 })
-		text(c, { Position = UDim2.new(0, 8, 0, 74), Size = UDim2.new(1, -16, 0, 26), Text = pass.Name })
-		text(c, { Position = UDim2.new(0, 10, 0, 102), Size = UDim2.new(1, -20, 0, 36), Text = pass.Blurb, TextWrapped = true })
+		text(c, { Position = UDim2.new(0, 8, 0, 74), Size = UDim2.new(1, -16, 0, 26), Text = pass.Name, Max = 24 })
+		text(c, { Position = UDim2.new(0, 10, 0, 102), Size = UDim2.new(1, -20, 0, 36), Text = pass.Blurb, TextWrapped = true, Max = 16 })
 		robuxButton(c, { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -10), Size = UDim2.new(1, -40, 0, 42) }, "GamePass", pass.Id, pass.What, pass.Owned)
 	end
 
@@ -508,8 +516,8 @@ function Shop.start(passApi)
 	local function boostCell(r: Frame, index: number, icon: string, title: string, blurb: string, id: number, what: string)
 		local c = cell(r, index, 2, CARD)
 		Ui.icon(c, icon, { Position = UDim2.new(0, 4, 0, 6), Size = UDim2.fromOffset(70, 70), ZIndex = 2 })
-		text(c, { Position = UDim2.new(0, 78, 0, 10), Size = UDim2.new(1, -86, 0, 26), Text = title, TextXAlignment = Enum.TextXAlignment.Left })
-		text(c, { Position = UDim2.new(0, 78, 0, 38), Size = UDim2.new(1, -86, 0, 34), Text = blurb, TextWrapped = true, TextXAlignment = Enum.TextXAlignment.Left })
+		text(c, { Position = UDim2.new(0, 78, 0, 10), Size = UDim2.new(1, -86, 0, 26), Text = title, TextXAlignment = Enum.TextXAlignment.Left, Max = 24 })
+		text(c, { Position = UDim2.new(0, 78, 0, 38), Size = UDim2.new(1, -86, 0, 34), Text = blurb, TextWrapped = true, TextXAlignment = Enum.TextXAlignment.Left, Max = 16 })
 		robuxButton(c, { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -10), Size = UDim2.new(1, -40, 0, 40) }, "Product", id, what)
 	end
 	local starters = row(140)
@@ -544,7 +552,10 @@ function Shop.start(passApi)
 	grid.Parent = page
 	local gridLayout = Instance.new("UIGridLayout")
 	gridLayout.CellPadding = UDim2.fromOffset(10, 14)
-	gridLayout.CellSize = UDim2.new(1 / 3, -7, 0, 220)
+	-- Four across on a phone's wide window, three in the narrower desktop one.
+	local columns = if Ui.isPhone() then 4 else 3
+	-- A pixel to spare, or rounding pushes the last card of each row onto the next.
+	gridLayout.CellSize = UDim2.new(1 / columns, -(10 * (columns - 1)) / columns - 1, 0, 220)
 	gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	gridLayout.Parent = grid
 	local gridPad = Instance.new("UIPadding")
