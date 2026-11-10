@@ -65,6 +65,8 @@ On create.roblox.com, open the experience and go to **Monetization**. Icons for 
 | 3,000 Feathers | `feathers_3000.png` | `FeatherPacks[3]` | 199 |
 | Power-Up Starter: 5 races start with a power-up in hand | `starter_5.png` | `Starters[1]` | 39 |
 | Power-Up Starter: 15 races | `starter_15.png` | `Starters[2]` | 99 |
+| Feast Frenzy: 2x race Feathers for everyone in the server for 15 minutes | `feast_frenzy.png` | `FeastFrenzy` | 99 |
+| Harvest Bundle: Chef Turkey, 1,000 Feathers and 5 Starters (750 Feathers instead of the skin if owned) | `harvest_bundle.png` | `HarvestBundle` | 119 |
 
 A Power-Up Starter never hands out the Drumstick Dash, so nobody buys speed, and only fills an empty slot at GO.
 

@@ -10,6 +10,8 @@ local NO_IDS = {
 	XpBoosts = { 0, 0 }, -- 30 minutes, 2 hours
 	FeatherPacks = { 0, 0, 0 }, -- 300, 1,000, 3,000
 	Starters = { 0, 0 }, -- 5 races, 15 races
+	FeastFrenzy = 0,
+	HarvestBundle = 0,
 }
 local ROBUX_IDS = {
 	-- 🦃 TURKEY RACE! [DON'T GET COOKED!], the real game (place 84232605874844)
@@ -22,6 +24,8 @@ local ROBUX_IDS = {
 		XpBoosts = { 3729564029, 3729564096 },
 		FeatherPacks = { 3729564102, 3729564108, 3729564115 },
 		Starters = { 3729564121, 3729564127 },
+		FeastFrenzy = 3730272928, -- created 2026-11-10
+		HarvestBundle = 3730272938,
 	},
 }
 local ids = ROBUX_IDS[game.GameId] or NO_IDS
@@ -165,6 +169,12 @@ local Config = {
 			{ Id = ids.Starters[1], Races = 5 },
 			{ Id = ids.Starters[2], Races = 15 },
 		},
+		-- The whole server earns Multiplier x Feathers from races for Minutes; buying more adds more time.
+		FeastFrenzy = { Id = ids.FeastFrenzy, Minutes = 15, Multiplier = 2 },
+		-- A skin, Feathers and Power-Up Starters together. Anyone who already has the skin gets FeathersIfOwned more
+		-- Feathers instead. WorthRobux is what the parts cost bought separately, shown crossed out: 1,000 Feathers
+		-- R$ 75, 5 Starters R$ 39, and the skin's 750 Feathers about R$ 56.
+		HarvestBundle = { Id = ids.HarvestBundle, Skin = "Chef", Feathers = 1000, Starters = 5, FeathersIfOwned = 750, WorthRobux = 170 },
 	},
 
 	-- What the VIP pass gives, besides a VIP tag in chat and over your turkey and a golden trail.

@@ -113,6 +113,16 @@ function Hud.start(controls)
 	})
 	local boostLabel = label(boostPill, { Position = UDim2.new(0, 10, 0, 4), Size = UDim2.new(1, -20, 1, -8) })
 
+	-- A Feast Frenzy someone bought for the whole server, under the status bar (and the lap pill while racing).
+	local feastPill = card(gui, {
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0, 62),
+		Size = UDim2.fromOffset(360, 34),
+		BackgroundColor3 = Color3.fromRGB(205, 96, 34),
+		Visible = false,
+	})
+	local feastLabel = label(feastPill, { Position = UDim2.new(0, 10, 0, 5), Size = UDim2.new(1, -20, 1, -10) })
+
 	-- Racing: place, stamina, power-up slot, countdown ---------------------------------------------------------
 	local placeCard = card(gui, {
 		AnchorPoint = Vector2.new(0, 0.5),
@@ -424,6 +434,14 @@ function Hud.start(controls)
 		placeCard.Visible = racing
 		staminaBar.Visible = racing
 		feathersPill.Visible = not racing
+
+		local feastLeft = (ReplicatedStorage:GetAttribute("FeastUntil") or 0) - workspace:GetServerTimeNow()
+		feastPill.Visible = feastLeft > 0
+		if feastPill.Visible then
+			local by = ReplicatedStorage:GetAttribute("FeastBy")
+			feastLabel.Text = `🦃 FEAST FRENZY: {Config.Robux.FeastFrenzy.Multiplier}x Feathers • {Format.duration(feastLeft)}{if by then ` • thanks {by}!` else ""}`
+			feastPill.Position = UDim2.new(0.5, 0, 0, if racing then 106 else 62)
+		end
 		if racing then
 			lapLabel.Text = `LAP {player:GetAttribute("Lap") or 1}/{ReplicatedStorage:GetAttribute("Laps") or Config.Laps}`
 			local place = player:GetAttribute("Place") or 1

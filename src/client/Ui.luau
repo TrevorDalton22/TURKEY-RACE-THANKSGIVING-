@@ -31,11 +31,14 @@ Ui.PURPLE = Color3.fromRGB(140, 82, 200)
 Ui.RED = Color3.fromRGB(196, 56, 42)
 Ui.GREY = Color3.fromRGB(128, 118, 110)
 
--- The art, from assets/ui/export (uploaded 2026-11-07).
+-- The art, from assets/ui/export (panels uploaded 2026-11-07; icons v2 and the barn textures 2026-11-10).
 local PANEL_IMAGE = "rbxassetid://103574113001983" -- ui_panel.png
 local WINDOW_IMAGE = "rbxassetid://120450639646642" -- ui_window.png
-local ICON_IMAGE = "rbxassetid://107763113550500" -- ui_icons.png, 128 px cells
+local ICON_IMAGE = "rbxassetid://91980429688278" -- ui_icons.png, 128 px cells
 local SLICE = { [PANEL_IMAGE] = 28, [WINDOW_IMAGE] = 36 } -- 9-slice margins, of 256 px
+Ui.PLANKS = "rbxassetid://120627973229816" -- ui_planks.png, tiles at 256 px
+Ui.STRIPES = "rbxassetid://131971313716560" -- ui_stripes.png, white on clear, tiles at 64 px
+Ui.DOTS = "rbxassetid://106439124504684" -- ui_dots.png, white on clear, tiles at 24 px
 
 -- Each icon's cell in the sheet, from ui_icons.json.
 Ui.ICONS = {
@@ -43,6 +46,7 @@ Ui.ICONS = {
 	gift = { 6, 0 }, trophy = { 7, 0 }, star = { 0, 1 }, lock = { 1, 1 }, check = { 2, 1 }, clock = { 3, 1 },
 	turkey = { 4, 1 }, tag = { 5, 1 }, feathers_s = { 6, 1 }, feathers_m = { 7, 1 }, feathers_l = { 0, 2 },
 	drumstick = { 1, 2 }, pie = { 2, 2 }, butter = { 3, 2 }, bomb = { 4, 2 }, potato = { 5, 2 }, tornado = { 6, 2 },
+	pumpkin = { 7, 2 }, maple_leaf = { 0, 3 }, corn = { 1, 3 }, acorn = { 2, 3 }, oak_leaf = { 3, 3 }, roast = { 4, 3 },
 }
 -- The icon for each power-up.
 Ui.POWER_ICONS = {
@@ -258,6 +262,158 @@ function Ui.button(parent: Instance, props): TextButton
 		to(if hovering then 1.06 else 1)
 	end)
 	return b
+end
+
+-- Barn style (the shop) -------------------------------------------------------------------------------------------
+-- Smooth gradient panels with a thick dark outline and a tiled pattern, like a classic Roblox shop, instead of
+-- the faceted panels above.
+
+Ui.BARN_OUTLINE = Color3.fromRGB(43, 26, 14)
+
+-- A tiled pattern (Ui.STRIPES, Ui.DOTS or Ui.PLANKS) filling a frame, under its contents.
+function Ui.pattern(frame: GuiObject, image: string, tile: number, transparency: number, tint: Color3?): ImageLabel
+	local p = Instance.new("ImageLabel")
+	p.Name = "Pattern"
+	p.BackgroundTransparency = 1
+	p.Image = image
+	p.ScaleType = Enum.ScaleType.Tile
+	p.TileSize = UDim2.fromOffset(tile, tile)
+	p.ImageTransparency = transparency
+	p.ImageColor3 = tint or Color3.new(1, 1, 1)
+	p.Size = UDim2.fromScale(1, 1)
+	p.ZIndex = 0
+	local corner = frame:FindFirstChildOfClass("UICorner")
+	if corner then
+		corner:Clone().Parent = p
+	end
+	p.Parent = frame
+	return p
+end
+
+-- A panel filled with a gradient from `top` to `bottom` (rotated by `rotation` degrees, 90 is top to bottom),
+-- outlined, with an optional tiled pattern over it.
+function Ui.barnPanel(parent: Instance, props, top: Color3, bottom: Color3, rotation: number?, patternImage: string?): Frame
+	local f = Instance.new("Frame")
+	f.BackgroundColor3 = Color3.new(1, 1, 1)
+	f.BorderSizePixel = 0
+	corner(f, UDim.new(0, 12))
+	local gradient = Instance.new("UIGradient")
+	gradient.Name = "Fill"
+	gradient.Color = ColorSequence.new(top, bottom)
+	gradient.Rotation = rotation or 90
+	gradient.Parent = f
+	local stroke = Instance.new("UIStroke")
+	stroke.Name = "Outline"
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	stroke.Thickness = 3
+	stroke.Color = Ui.BARN_OUTLINE
+	stroke.Parent = f
+	if patternImage == Ui.STRIPES then
+		Ui.pattern(f, Ui.STRIPES, 64, 0.72)
+	elseif patternImage == Ui.DOTS then
+		Ui.pattern(f, Ui.DOTS, 14, 0.7)
+	end
+	return apply(f, parent, props)
+end
+
+-- A section title bar: a striped gradient with big outlined text.
+function Ui.barnHeader(parent: Instance, props, text: string, top: Color3, bottom: Color3): Frame
+	local f = Ui.barnPanel(parent, props, top, bottom, 90, Ui.STRIPES)
+	local l = Ui.label(f, {
+		Name = "Title",
+		Position = UDim2.new(0, 10, 0, 5),
+		Size = UDim2.new(1, -20, 1, -10),
+		Text = text,
+		TextColor3 = Color3.fromRGB(255, 248, 228),
+		ZIndex = 2,
+	})
+	l.Outline.Thickness = 3.5
+	l.Outline.Color = Ui.BARN_OUTLINE
+	return f
+end
+
+-- A smooth button with a gradient and outline (green for Robux by default), outlined text, and the same bounce
+-- as Ui.button. Set .Text and .BackgroundColor3 as usual; the gradient shades whatever color it is.
+function Ui.barnButton(parent: Instance, props): TextButton
+	local b = Instance.new("TextButton")
+	b.AutoButtonColor = false
+	b.BackgroundColor3 = Color3.fromRGB(74, 186, 52)
+	b.BorderSizePixel = 0
+	b.Font = Enum.Font.FredokaOne
+	b.TextScaled = true
+	b.TextColor3 = Color3.new(1, 1, 1)
+	corner(b, UDim.new(0, 10))
+	local shade = Instance.new("UIGradient")
+	shade.Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(190, 190, 190))
+	shade.Rotation = 90
+	shade.Parent = b
+	local stroke = Instance.new("UIStroke")
+	stroke.Name = "Border"
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	stroke.Thickness = 3
+	stroke.Parent = b
+	local padding = Instance.new("UIPadding")
+	padding.PaddingTop = UDim.new(0.16, 0)
+	padding.PaddingBottom = UDim.new(0.16, 0)
+	padding.PaddingLeft = UDim.new(0, 8)
+	padding.PaddingRight = UDim.new(0, 8)
+	padding.Parent = b
+	local face = Instance.new("TextLabel")
+	face.Name = "Face"
+	face.BackgroundTransparency = 1
+	face.Size = UDim2.fromScale(1, 1)
+	face.Font = Enum.Font.FredokaOne
+	face.TextScaled = true
+	face.Parent = b
+	local outline = Ui.outline(face, 2.5)
+	apply(b, parent, props)
+	b.TextTransparency = 1
+	local function sync()
+		face.Text = b.Text
+		face.TextColor3 = b.TextColor3
+		stroke.Color = Ui.darker(b.BackgroundColor3, 0.55)
+		outline.Color = stroke.Color
+	end
+	b:GetPropertyChangedSignal("Text"):Connect(sync)
+	b:GetPropertyChangedSignal("TextColor3"):Connect(sync)
+	b:GetPropertyChangedSignal("BackgroundColor3"):Connect(sync)
+	sync()
+	local scale = Instance.new("UIScale")
+	scale.Parent = b
+	local hovering = false
+	local function to(size: number)
+		TweenService:Create(scale, QUICK, { Scale = size }):Play()
+	end
+	b.MouseEnter:Connect(function()
+		hovering = true
+		to(1.06)
+	end)
+	b.MouseLeave:Connect(function()
+		hovering = false
+		to(1)
+	end)
+	b.MouseButton1Down:Connect(function()
+		to(0.92)
+	end)
+	b.MouseButton1Up:Connect(function()
+		to(if hovering then 1.06 else 1)
+	end)
+	return b
+end
+
+-- A small tilted tag on a corner: "NEW!", "-20%", "POPULAR".
+function Ui.barnTag(parent: GuiObject, text: string, color: Color3): Frame
+	local tag = Ui.barnPanel(parent, {
+		Name = "Tag",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, 8, 0, -10),
+		Size = UDim2.fromOffset(math.max(58, #text * 11 + 18), 28),
+		Rotation = 7,
+		ZIndex = 5,
+	}, color, Ui.darker(color, 0.25), 90)
+	local l = Ui.label(tag, { Position = UDim2.new(0, 6, 0, 4), Size = UDim2.new(1, -12, 1, -8), Text = text, ZIndex = 6 })
+	l.Outline.Color = Ui.BARN_OUTLINE
+	return tag
 end
 
 -- A square menu tile down the left side of the screen, with a big icon and its name under it; on phones the

@@ -274,6 +274,70 @@ def icon_tornado(p):
         ico(p, (cos(a) * r, sin(a) * r - 0.2, h), 0.11, [GOLD_LIGHT, GOLD], subdiv=0, jitter=0.1, squash=1.5, seed=k)
 
 
+def icon_pumpkin(p):
+    rib = lambda a, i: 1 + 0.07 * cos(10 * a)
+    shade = lambda c, i, j: ORANGE if j % 2 else "D86A22"
+    lathe(p, [(0.0, -0.6), (0.5, -0.56), (0.84, -0.28), (0.9, 0.0), (0.82, 0.3), (0.48, 0.52), (0.0, 0.56)], shade, n=20, smooth=False, radial=rib)
+    tube(p, [(0, 0, 0.45), (0.04, 0, 0.7), (0.14, 0, 0.84)], [0.1, 0.08, 0.07], "6B5A2A", n=5, smooth=False)
+    with p.xf(Matrix.Translation((0.2, -0.2, 0.6)) @ Matrix.Rotation(radians(-35), 4, "Y") @ Matrix.Scale(0.32, 4)):
+        faceted(p, [(0, 1), (0.35, 0.55), (0.42, 0.05), (0.2, -0.35), (0, -0.5), (-0.2, -0.35), (-0.42, 0.05), (-0.35, 0.55)], 0.1, [GREEN, GREEN_DARK])
+
+
+def lobed(count, radius, depth, teeth, up_bias):
+    points = []
+    for k in range(72):
+        a = pi / 2 + k * 2 * pi / 72
+        r = radius * (1 - depth + depth * (0.5 + 0.5 * cos(count * (a - pi / 2))) ** 1.6) + 0.05 * cos(teeth * a)
+        r *= 1 - up_bias + up_bias * (0.5 + 0.5 * sin(a))
+        points.append((cos(a) * r, sin(a) * r))
+    return points
+
+
+def icon_maple_leaf(p):
+    faceted(p, lobed(5, 1.0, 0.55, 15, 0.3), 0.14, [CRANBERRY, "CC4228", ORANGE, "DD5A2C"])
+    tube(p, [(0, -0.05, -0.1), (0.04, -0.05, -0.92)], 0.035, BROWN_DARK, n=4, smooth=False)
+
+
+def icon_oak_leaf(p):
+    points = []
+    for k in range(48):
+        a = k * 2 * pi / 48
+        wave = 1 + 0.17 * cos(7 * a)
+        points.append((0.46 * cos(a) * wave, 0.9 * sin(a)))
+    with p.xf(Matrix.Rotation(radians(-25), 4, "Y")):
+        faceted(p, points, 0.12, [GOLD, ORANGE, GOLD_DARK, ORANGE_LIGHT])
+        tube(p, [(0, -0.05, -0.82), (0, -0.05, -1.05)], 0.035, BROWN_DARK, n=4, smooth=False)
+
+
+def icon_corn(p):
+    with p.xf(Matrix.Rotation(radians(-22), 4, "Y")):
+        kernels = lambda c, i, j: GOLD_LIGHT if (i + j) % 2 else GOLD
+        lathe(p, [(0.0, -0.72), (0.26, -0.58), (0.31, -0.1), (0.27, 0.4), (0.12, 0.7), (0.0, 0.76)], kernels, n=10, smooth=False)
+        for angle in (-40, 0, 40):
+            with p.xf(Matrix.Rotation(radians(angle), 4, "Y") @ Matrix.Translation((0, -0.12, -0.25))):
+                faceted(p, [(0, 0.55), (0.18, 0.1), (0.14, -0.45), (0, -0.55), (-0.14, -0.45), (-0.18, 0.1)], 0.08, [GREEN, GREEN_DARK, "8AA43A"])
+
+
+def icon_acorn(p):
+    lathe(p, [(0.0, -0.78), (0.28, -0.6), (0.44, -0.2), (0.42, 0.08)], "C68A4A", n=10, smooth=False, cap_end=False)
+    rough = lambda c, i, j: BROWN if (i + j) % 2 else BROWN_DARK
+    lathe(p, [(0.4, 0.02), (0.52, 0.22), (0.36, 0.42), (0.0, 0.46)], rough, n=10, smooth=False)
+    tube(p, [(0, 0, 0.42), (0.06, 0, 0.66)], 0.05, BROWN_DARK, n=4, smooth=False)
+
+
+def icon_roast(p):
+    lathe(p, [(0.0, -0.46), (0.98, -0.46), (1.08, -0.34), (0.0, -0.34)], CREAM, n=12, smooth=False)
+    # A wide, low roast with its drumsticks sticking up at the front.
+    with p.xf(Matrix.Translation((0, 0.08, -0.05)) @ Matrix.Scale(1.0, 4) @ Matrix.Diagonal((1.45, 1.15, 0.78, 1.0))):
+        ico(p, (0, 0, 0), 0.55, ["C47A3E", "B5652F", "D08A48"], subdiv=1, jitter=0.07, seed=11)
+    for side in (-1, 1):
+        tube(p, [(side * 0.3, -0.38, -0.02), (side * 0.38, -0.62, 0.3)], [0.17, 0.11], "B5652F", n=6, smooth=False)
+        for k in (-1, 1):
+            ico(p, (side * 0.38 + k * 0.05, -0.66, 0.38), 0.07, CREAM, subdiv=0, jitter=0.02)
+    for k, (x, y) in enumerate(((-0.8, -0.3), (0.82, -0.25), (-0.55, -0.62), (0.6, -0.6))):
+        ico(p, (x, y, -0.28), 0.14, [GREEN, GREEN_DARK], subdiv=0, jitter=0.1, seed=k + 40)
+
+
 ICONS = [
     ("feather", icon_feather),
     ("cart", icon_cart),
@@ -298,9 +362,15 @@ ICONS = [
     ("bomb", icon_bomb),
     ("potato", icon_potato),
     ("tornado", icon_tornado),
+    ("pumpkin", icon_pumpkin),
+    ("maple_leaf", icon_maple_leaf),
+    ("corn", icon_corn),
+    ("acorn", icon_acorn),
+    ("oak_leaf", icon_oak_leaf),
+    ("roast", icon_roast),
 ]
 # Some icons read better from higher up.
-PITCH = {"pie": 38, "butter": 30, "potato": 30, "crown": 22, "trophy": 12, "gear": 6, "clock": 6, "star": 4, "lightning": 4, "check": 4, "tag": 6, "ticket": 8}
+PITCH = {"pie": 38, "butter": 30, "potato": 30, "crown": 22, "trophy": 12, "gear": 6, "clock": 6, "star": 4, "lightning": 4, "check": 4, "tag": 6, "ticket": 8, "maple_leaf": 4, "oak_leaf": 4, "roast": 30}
 
 
 # Scene, rendering --------------------------------------------------------------------------------------------------------
@@ -384,8 +454,11 @@ def frame(cam, objects, pitch=16, yaw=-22, fill=0.86):
 def render(scene, path, size):
     scene.render.resolution_x = scene.render.resolution_y = size
     scene.render.filepath = path
-    window = bpy.context.window_manager.windows[0]
-    with bpy.context.temp_override(window=window, scene=scene):
+    windows = bpy.context.window_manager.windows
+    if not windows:  # run with --background
+        bpy.ops.render.render(write_still=True, scene=scene.name)
+        return
+    with bpy.context.temp_override(window=windows[0], scene=scene):
         bpy.ops.render.render(write_still=True, scene=scene.name)
 
 
@@ -400,7 +473,7 @@ def turkey_object(scene, skin):
     source = bpy.data.objects["Turkey_Mesh"]
     obj = bpy.data.objects.new(PREFIX + "Turkey_" + skin, source.data)
     scene.collection.objects.link(obj)
-    image_name = "T_Turkey_Color.png" if skin == "Classic" else f"T_Turkey_Skin_{skin}.png"
+    image_name = f"T_Turkey_Skin_{skin}.png"  # Classic too: its natural colors are in export/ since 2026-11-08
     path = next(f"{d}/{image_name}" for d in TURKEY_TEXTURES if os.path.exists(f"{d}/{image_name}"))
     image = bpy.data.images.load(path, check_existing=False)
     image.name = PREFIX + skin
@@ -525,6 +598,50 @@ def panel(chamfer, line, bevel, seed):
     return half(rgba)
 
 
+def planks():
+    """256 x 256 horizontal wood planks with grain, gaps, end seams and nails; tiles in both directions."""
+    size, rows = 256, 4
+    h = size // rows
+    y, x = numpy.mgrid[0:size, 0:size].astype(numpy.float32)
+    row = (y // h).astype(int)
+    bases = numpy.stack([hex_rgb(c) for c in ("8E5C34", "83522E", "96643A", "7C4E2C")])
+    base = bases[row % 4]
+    u = x / size * 2 * pi
+    grain = 0.07 * numpy.sin(u * 3 + y * 0.55 + 1.6 * numpy.sin(u * 2 + row)) + 0.035 * numpy.sin(y * 1.9 + u * 5 + row * 2)
+    shade = 1 + grain
+    inside = y % h
+    shade = numpy.where(inside < 3, 0.42, numpy.where(inside < 5, 0.8, numpy.where(inside > h - 3, 1.12, shade)))
+    for r, seam in enumerate((44, 172, 108, 226)):
+        cut = (row == r) & (numpy.abs(x - seam) < 1.6)
+        shade = numpy.where(cut, 0.48, shade)
+        for nx in (seam - 9, seam + 9):
+            for ny in (r * h + 14, r * h + h - 12):
+                nail = (x - nx) ** 2 + (y - ny) ** 2 < 6.5
+                shade = numpy.where(nail, 0.4, shade)
+    rgb = numpy.clip(base * shade[..., None], 0, 1)
+    return numpy.dstack([rgb, numpy.ones((size, size), dtype=numpy.float32)]).astype(numpy.float32)
+
+
+def stripes():
+    """64 x 64 white diagonal stripes on transparent, for tinting over a colored header."""
+    size = 128  # drawn at twice the size, then halved
+    y, x = numpy.mgrid[0:size, 0:size].astype(numpy.float32) + 0.5
+    band = ((x + y) % 64) < 32
+    alpha = band.astype(numpy.float32)
+    rgba = numpy.dstack([numpy.ones((size, size, 3), dtype=numpy.float32), alpha])
+    return half(rgba)
+
+
+def dots():
+    """24 x 24 with one soft white dot, for a halftone pattern over cards."""
+    size = 48
+    y, x = numpy.mgrid[0:size, 0:size].astype(numpy.float32) + 0.5
+    d = numpy.sqrt((x - size / 2) ** 2 + (y - size / 2) ** 2)
+    alpha = numpy.clip(7.5 - d, 0, 1).astype(numpy.float32)
+    rgba = numpy.dstack([numpy.ones((size, size, 3), dtype=numpy.float32), alpha])
+    return half(rgba)
+
+
 # Build --------------------------------------------------------------------------------------------------------------------
 
 
@@ -570,6 +687,18 @@ def build():
         with part.xf(Matrix.Translation((0.05, -0.6, 1.0 if count == 1 else 0.85)) @ Matrix.Rotation(radians(12), 4, "Y") @ Matrix.Scale(0.42, 4)):
             icon_star(part)
         item_parts[name] = part
+    # Feast Frenzy: the roast with a lightning bolt; the Harvest Bundle: feathers and a gift beside the Chef Turkey.
+    part = Part()
+    icon_roast(part)
+    with part.xf(Matrix.Translation((0.95, -0.5, 0.55)) @ Matrix.Rotation(radians(-12), 4, "Y") @ Matrix.Scale(0.55, 4)):
+        icon_lightning(part)
+    item_parts["feast_frenzy"] = part
+    part = Part()
+    with part.xf(Matrix.Translation((-0.55, 0.1, 0.1))):
+        feather_pile(part, 4)
+    with part.xf(Matrix.Translation((0.75, -0.2, -0.25)) @ Matrix.Scale(0.75, 4)):
+        icon_gift(part)
+    item_parts["harvest_bundle_extras"] = part
     # Meshes before the palette, which holds only the colors they use.
     meshes = {name: make_mesh(PREFIX + name, part, random.Random(len(name))) for name, part in parts.items()}
     item_meshes = {name: make_mesh(PREFIX + "item_" + name, part, random.Random(len(name))) for name, part in item_parts.items()}
@@ -605,24 +734,42 @@ def build():
         "premium_pass": "7A44B8", "skin_rainbow": "E89A1C", "skin_galaxy": "D8406E", "skin_diamond": "D8406E",
         "xp_30m": "3F88D8", "xp_2h": "3F88D8", "feathers_300": "D86A22", "feathers_1000": "D86A22",
         "feathers_3000": "D86A22", "vip": "8E2A22", "starter_5": "4E8A2C", "starter_15": "4E8A2C",
+        "feast_frenzy": "C8501E", "harvest_bundle": "E0901C",
     }
     skins = {"skin_rainbow": "Rainbow", "skin_galaxy": "Galaxy", "skin_diamond": "Diamond"}
     for seed, (name, color) in enumerate(backgrounds.items()):
+        objects = []
         if name in skins:
-            obj = turkey_object(scene, skins[name])
-            frame(cam, [obj], pitch=10, yaw=-32, fill=0.82)
+            objects.append(turkey_object(scene, skins[name]))
+            frame(cam, objects, pitch=10, yaw=-32, fill=0.82)
+        elif name == "harvest_bundle":
+            turkey = turkey_object(scene, "Chef")
+            turkey.location = (2.2, 1.5, 0)
+            extras = mesh_object(scene, name, item_meshes["harvest_bundle_extras"])
+            extras.scale = (3.4, 3.4, 3.4)
+            extras.location = (-4.2, -2.5, 3.0)
+            objects = [turkey, extras]
+            for obj in objects:
+                obj.matrix_world = obj.matrix_basis  # so framing sees the new placement before the scene updates
+            frame(cam, objects, pitch=12, yaw=-24, fill=0.86)
         else:
-            obj = mesh_object(scene, name, item_meshes[name])
-            frame(cam, [obj], pitch=PITCH.get(name, 16), fill=0.74)
+            objects.append(mesh_object(scene, name, item_meshes[name]))
+            frame(cam, objects, pitch=PITCH.get(name, 16), fill=0.74)
         path = f"{RENDERS}/cells/item_{name}.png"
         render(scene, path, 512)
-        bpy.data.objects.remove(obj)
+        for obj in objects:
+            bpy.data.objects.remove(obj)
         picture = over(outlined(load_rgba(path), 12), background(512, color, seed))
         save_rgba(picture, f"{EXPORT}/items/{name}.png")
 
     # Panels.
     save_rgba(panel(22, 4, 6, 1), EXPORT + "/ui_panel.png")
     save_rgba(panel(30, 5, 9, 2), EXPORT + "/ui_window.png")
+
+    # Tiling textures for the barn-style shop: wood planks, diagonal stripes and dots.
+    save_rgba(planks(), EXPORT + "/ui_planks.png")
+    save_rgba(stripes(), EXPORT + "/ui_stripes.png")
+    save_rgba(dots(), EXPORT + "/ui_dots.png")
 
     # A preview: the sheet on a mid backdrop, and the panels tinted a few ways.
     preview = numpy.ones((1024 + 288, 1024, 4), dtype=numpy.float32)

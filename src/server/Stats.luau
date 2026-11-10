@@ -318,6 +318,18 @@ function Stats.unlockSkin(player: Player, skinId: string)
 	Stats.saveSoon(player)
 end
 
+-- Takes back a skin given by a purchase that then couldn't be saved.
+function Stats.lockSkin(player: Player, skinId: string)
+	if not owned[player] or skinId == Skins.Default or not owned[player][skinId] then
+		return
+	end
+	owned[player][skinId] = nil
+	if player:GetAttribute("Skin") == skinId then
+		player:SetAttribute("Skin", Skins.Default)
+	end
+	publishSkins(player)
+end
+
 -- Spends the Feathers and unlocks the skin. The caller checks the price first.
 function Stats.buySkin(player: Player, skinId: string, price: number)
 	local leaderstats = player:FindFirstChild("leaderstats")

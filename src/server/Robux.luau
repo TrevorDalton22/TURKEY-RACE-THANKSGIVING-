@@ -1,7 +1,8 @@
 -- Robux purchases. Clients open Roblox's purchase prompts themselves; everything is granted here.
 --   Game passes (owned forever): the Harvest Pass premium track, VIP and the Robux skins. Checked on join,
 --     and granted the moment one is bought.
---   Developer products (bought again and again): XP boosts, Feather packs and Power-Up Starters. Roblox calls
+--   Developer products (bought again and again): XP boosts, Feather packs, Power-Up Starters, the Harvest Bundle,
+--     and Feast Frenzy, which doubles race Feathers for everyone in the server. Roblox calls
 --     processReceipt until it hears the purchase was granted, so a purchase is only confirmed once it's saved,
 --     and each purchase id is remembered so it's never granted twice.
 -- Ids come from Config.Robux; anything left at 0 is ignored.
@@ -108,10 +109,56 @@ local function checkPasses(player: Player)
 	end
 end
 
+-- Feast Frenzy: everyone in this server earns more Feathers from races until FeastUntil (server time), shown by
+-- the HUD with who started it (FeastBy). More purchases add more time.
+local function startFeast(player: Player): () -> ()
+	local feast = Config.Robux.FeastFrenzy
+	local before, beforeBy = ReplicatedStorage:GetAttribute("FeastUntil"), ReplicatedStorage:GetAttribute("FeastBy")
+	local now = workspace:GetServerTimeNow()
+	ReplicatedStorage:SetAttribute("FeastUntil", math.max(before or 0, now) + feast.Minutes * 60)
+	ReplicatedStorage:SetAttribute("FeastBy", player.DisplayName)
+	return function()
+		ReplicatedStorage:SetAttribute("FeastUntil", before)
+		ReplicatedStorage:SetAttribute("FeastBy", beforeBy)
+	end
+end
+
+-- The Harvest Bundle: its skin (or Feathers instead if it's owned already), Feathers and Power-Up Starters.
+local function grantBundle(player: Player): (() -> (), string)
+	local bundle = Config.Robux.HarvestBundle
+	local hadSkin = Stats.owns(player, bundle.Skin)
+	local feathers = bundle.Feathers + (if hadSkin then bundle.FeathersIfOwned else 0)
+	if not hadSkin then
+		Stats.unlockSkin(player, bundle.Skin)
+		Stats.equip(player, bundle.Skin)
+	end
+	Stats.add(player, feathers, 0)
+	local undoStarters = Stats.addStarters(player, bundle.Starters)
+	local skinName = Skins.byId[bundle.Skin].Name
+	return function()
+		Stats.add(player, -feathers, 0)
+		undoStarters()
+		if not hadSkin then
+			Stats.lockSkin(player, bundle.Skin)
+		end
+	end, if hadSkin
+		then `🎁 Harvest Bundle! +{feathers} {Format.FEATHER} and {bundle.Starters} starters`
+		else `🎁 Harvest Bundle! {skinName}, +{feathers} {Format.FEATHER} and {bundle.Starters} starters`
+end
+
 -- Gives what a developer product is for. Returns a function that takes it back (for when the purchase
--- can't be saved) and the message to show, or nil for a product this game doesn't sell.
-local function grantProduct(player: Player, productId: number): ((() -> ())?, string?)
-	if boostMinutes[productId] then
+-- can't be saved), the message to show the buyer, and one for everyone (or nil); or nil for a product this
+-- game doesn't sell.
+local function grantProduct(player: Player, productId: number): ((() -> ())?, string?, string?)
+	local robux = Config.Robux
+	if productId == robux.FeastFrenzy.Id then
+		local feast = robux.FeastFrenzy
+		return startFeast(player),
+			`🦃 You started a FEAST FRENZY! {feast.Multiplier}x Feathers for everyone!`,
+			`🦃 {player.DisplayName} started a FEAST FRENZY! {feast.Multiplier}x Feathers for everyone for {feast.Minutes} minutes!`
+	elseif productId == robux.HarvestBundle.Id then
+		return grantBundle(player)
+	elseif boostMinutes[productId] then
 		local minutes = boostMinutes[productId]
 		return Progression.addBoost(player, minutes), `⚡ 2x XP for {minutes} minutes! Go race!`
 	elseif featherPacks[productId] then
@@ -128,7 +175,15 @@ local function grantProduct(player: Player, productId: number): ((() -> ())?, st
 end
 
 local function sells(productId: number): boolean
-	return boostMinutes[productId] ~= nil or featherPacks[productId] ~= nil or starterRaces[productId] ~= nil
+	local robux = Config.Robux
+	if productId == 0 then
+		return false
+	end
+	return boostMinutes[productId] ~= nil
+		or featherPacks[productId] ~= nil
+		or starterRaces[productId] ~= nil
+		or productId == robux.FeastFrenzy.Id
+		or productId == robux.HarvestBundle.Id
 end
 
 function Robux.processReceipt(receipt): Enum.ProductPurchaseDecision
@@ -144,7 +199,7 @@ function Robux.processReceipt(receipt): Enum.ProductPurchaseDecision
 	if not Stats.addReceipt(player, receipt.PurchaseId) then
 		return Decision.PurchaseGranted -- granted before
 	end
-	local undo, message = grantProduct(player, receipt.ProductId)
+	local undo, message, announcement = grantProduct(player, receipt.ProductId)
 	if not Stats.saveNow(player) then
 		if undo then
 			undo()
@@ -153,6 +208,13 @@ function Robux.processReceipt(receipt): Enum.ProductPurchaseDecision
 		return Decision.NotProcessedYet
 	end
 	notify(player, message or "Thanks for your purchase!")
+	if announcement then
+		for _, other in Players:GetPlayers() do
+			if other ~= player then
+				notify(other, announcement)
+			end
+		end
+	end
 	return Decision.PurchaseGranted
 end
 

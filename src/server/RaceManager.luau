@@ -279,6 +279,10 @@ local function runRace(mode: string, joined: { Player }): (any, { Player })
 		if player:GetAttribute("Vip") == true then
 			feathers *= Config.Vip.FeatherMultiplier
 		end
+		-- A Feast Frenzy someone bought for the whole server.
+		if (ReplicatedStorage:GetAttribute("FeastUntil") or 0) > workspace:GetServerTimeNow() then
+			feathers *= Config.Robux.FeastFrenzy.Multiplier
+		end
 		Stats.add(player, feathers, if place == 1 and r.finishTime then 1 else 0)
 		local onPodium = not r.cooked and #podium < 3
 		if onPodium then
